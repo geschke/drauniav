@@ -6,12 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-// Aliases to resolve WPF vs WinForms name clashes introduced by UseWindowsForms=true
-using Color           = System.Windows.Media.Color;
-using MessageBox      = System.Windows.MessageBox;
-using MouseEventArgs  = System.Windows.Input.MouseEventArgs;
-using OpenFileDialog  = Microsoft.Win32.OpenFileDialog;
-using SaveFileDialog  = Microsoft.Win32.SaveFileDialog;
+using Microsoft.Win32;
 
 namespace AudioVisualizer;
 
@@ -405,22 +400,78 @@ public partial class MainWindow : Window
 
     // ── Color picker ──────────────────────────────────────────────────────────
 
-    private void BtnPickColor_Click(object sender, RoutedEventArgs e)
+    private async void BtnPickColor_Click(object sender, RoutedEventArgs e)
     {
-        Color current = ParseSpectrumColor(_spectrumColor);
-        using var dlg = new System.Windows.Forms.ColorDialog
-        {
-            Color    = System.Drawing.Color.FromArgb(current.R, current.G, current.B),
-            FullOpen = true,
-        };
+        Color currentColor = ParseSpectrumColor(_spectrumColor);
 
-        if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        while (true)
         {
-            var c = dlg.Color;
-            _spectrumColor = $"0x{c.R:X2}{c.G:X2}{c.B:X2}";
-            RctColor.Fill  = new SolidColorBrush(Color.FromRgb(c.R, c.G, c.B));
-            UpdateOverlay();
+            var dlg = new ColorPickerDialog(currentColor) { Owner = this };
+            dlg.ShowDialog();   // blocks until dialog closes (returns null for eyedropper)
+
+            if (dlg.EyedropperMode)
+            {
+                // Dialog closed itself so it can be gc'd; sample a pixel, then reopen
+                currentColor = await WaitForEyedropperAsync();
+            }
+            else if (dlg.DialogResult == true)
+            {
+                var c = dlg.SelectedColor;
+                _spectrumColor = $"0x{c.R:X2}{c.G:X2}{c.B:X2}";
+                RctColor.Fill  = new SolidColorBrush(c);
+                UpdateOverlay();
+                break;
+            }
+            else
+            {
+                break;  // cancelled or X-button
+            }
         }
+    }
+
+    /// <summary>
+    /// Sets the cursor to crosshair, registers a one-shot PreviewMouseDown handler,
+    /// and returns a Task that completes with the sampled Color when the user clicks.
+    /// </summary>
+    private Task<Color> WaitForEyedropperAsync()
+    {
+        var tcs = new TaskCompletionSource<Color>();
+        Mouse.OverrideCursor = Cursors.Cross;
+
+        MouseButtonEventHandler? handler = null;
+        handler = (_, args) =>
+        {
+            PreviewMouseDown -= handler;
+            Mouse.OverrideCursor = null;
+            args.Handled = true;   // prevent drag / other child handlers
+            tcs.SetResult(SampleColorAtPoint(args.GetPosition(ImgPreview)));
+        };
+        PreviewMouseDown += handler;
+
+        return tcs.Task;
+    }
+
+    /// <summary>
+    /// Translates a point in ImgPreview layout coordinates to a real image pixel,
+    /// converts the bitmap to Bgra32, reads the pixel, and returns the Color.
+    /// </summary>
+    private Color SampleColorAtPoint(Point posInPreview)
+    {
+        if (ImgPreview.Source is not BitmapSource bmp) return Colors.White;
+        Rect img = GetImageContentRect();
+        if (img == Rect.Empty) return Colors.White;
+
+        // Map preview coords → [0,1] within the image content rect, then to real px
+        double relX = Math.Clamp((posInPreview.X - img.Left) / img.Width,  0, 1);
+        double relY = Math.Clamp((posInPreview.Y - img.Top)  / img.Height, 0, 1);
+        int px = Math.Clamp((int)(relX * bmp.PixelWidth),  0, bmp.PixelWidth  - 1);
+        int py = Math.Clamp((int)(relY * bmp.PixelHeight), 0, bmp.PixelHeight - 1);
+
+        // Normalise to Bgra32 so the byte layout is always B G R A
+        var src = new FormatConvertedBitmap(bmp, PixelFormats.Bgra32, null, 0);
+        byte[] pixel = new byte[4];
+        src.CopyPixels(new Int32Rect(px, py, 1, 1), pixel, 4, 0);
+        return Color.FromRgb(pixel[2], pixel[1], pixel[0]);   // BGRA → RGB
     }
 
     private static Color ParseSpectrumColor(string hex)

@@ -27,22 +27,48 @@
         </Grid.ColumnDefinitions>
 
         <!-- Right: image preview panel -->
-        <Border Grid.Column="1" Background="#404040" Margin="0,14,14,14">
+        <Grid Grid.Column="1" Margin="0,14,14,14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#404040">
             <Grid>
                 <Image x:Name="ImgPreview" Stretch="Uniform"/>
                 <!-- Spectrum position overlay (Canvas lets us position children by pixel) -->
                 <Canvas x:Name="OverlayCanvas">
                     <!-- decorative / non-interactive elements -->
                     <Rectangle x:Name="CenterGuideLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                    <Rectangle x:Name="CenterGuideLineVertical" Width="1" Visibility="Collapsed" IsHitTestVisible="False"/>
                     <TextBlock  x:Name="CenterLabel" Text="· Mitte ·" FontSize="10"
                                 Foreground="White" Opacity="0.80" Visibility="Collapsed" IsHitTestVisible="False"/>
-                    <!-- draggable bar and its border lines -->
-                    <Rectangle x:Name="OverlayBar"        Visibility="Collapsed" Cursor="SizeNS"/>
+                    <!-- draggable/resizable overlay rectangle -->
+                    <Rectangle x:Name="OverlayBar"        Visibility="Collapsed" Cursor="SizeAll"/>
                     <Rectangle x:Name="OverlayTopLine"    Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
                     <Rectangle x:Name="OverlayBottomLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                    <Rectangle x:Name="OverlayLeftLine"   Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
+                    <Rectangle x:Name="OverlayRightLine"  Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
+                    <Rectangle x:Name="HandleTopLeft"     Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNWSE"/>
+                    <Rectangle x:Name="HandleTop"         Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNS"/>
+                    <Rectangle x:Name="HandleTopRight"    Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNESW"/>
+                    <Rectangle x:Name="HandleRight"       Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeWE"/>
+                    <Rectangle x:Name="HandleBottomRight" Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNWSE"/>
+                    <Rectangle x:Name="HandleBottom"      Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNS"/>
+                    <Rectangle x:Name="HandleBottomLeft"  Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNESW"/>
+                    <Rectangle x:Name="HandleLeft"        Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeWE"/>
                 </Canvas>
             </Grid>
         </Border>
+
+        <TextBlock x:Name="TxtImageInfo"
+                   Grid.Row="1"
+                   Margin="0,6,0,0"
+                   FontSize="11"
+                   Foreground="#9A9A9A"
+                   TextWrapping="Wrap"
+                   Visibility="Collapsed"/>
+        </Grid>
 
         <!-- Left: existing controls -->
         <Grid Grid.Column="0" Margin="14">
@@ -53,6 +79,7 @@
             <RowDefinition Height="14"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="14"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -120,8 +147,12 @@
         <Button Grid.Row="6" x:Name="BtnGenerate" Content="Generate" Width="110" Height="30"
                 HorizontalAlignment="Left" Click="Generate_Click"/>
 
-        <!-- Row 7: Progress bar -->
-        <ProgressBar Grid.Row="7" x:Name="Progress" Height="16" Margin="0,10,0,0"
+        <!-- Row 7: Play after export -->
+        <CheckBox Grid.Row="7" x:Name="ChkPlayAfterExport" Content="Nach dem Generieren abspielen"
+                  Margin="0,8,0,0" HorizontalAlignment="Left"/>
+
+        <!-- Row 8: Progress bar -->
+        <ProgressBar Grid.Row="8" x:Name="Progress" Height="16" Margin="0,10,0,0"
                      IsIndeterminate="False" Value="0" Maximum="100"/>
         </Grid>
     </Grid>

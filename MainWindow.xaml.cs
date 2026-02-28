@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Globalization;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -16,10 +18,44 @@ public partial class MainWindow : Window
     private string _spectrumColor = "0xFFFFFF";   // FFmpeg 0xRRGGBB hex string
 
     // ── Drag state ────────────────────────────────────────────────────────────
-    private double _offsetY;           // bar offset from image center in real image pixels (0 = centered)
-    private bool   _isDragging;
-    private double _dragStartMouseY;
-    private double _dragStartOffsetY;
+    private const double MinOverlayWidthPreview = 40.0;
+    private const double MinOverlayHeightPreview = 20.0;
+    private const double SnapThresholdPreview = 10.0;
+    private const double HandleSizePreview = 6.0;
+    private const double MoveEdgeExclusionPreview = 5.0;
+
+    private bool _overlayInitialized;
+    private bool _isDragging;
+    private bool _snapCenterX;
+    private bool _snapCenterY;
+
+    // Stored in real image pixels for direct FFmpeg usage.
+    private double _overlayX;
+    private double _overlayY;
+    private double _overlayWidth;
+    private double _overlayHeight;
+
+    private Point _dragStartMouse;
+    private Rect _dragStartRectPreview;
+    private OverlayDragMode _dragMode;
+
+    private enum OverlayDragMode
+    {
+        None,
+        Move,
+        ResizeLeft,
+        ResizeTopLeft,
+        ResizeTop,
+        ResizeTopRight,
+        ResizeRight,
+        ResizeBottomRight,
+        ResizeBottom,
+        ResizeBottomLeft
+    }
+    private static readonly HashSet<string> CommonAspectRatios = new(StringComparer.Ordinal)
+    {
+        "16:9", "4:3", "9:16", "1:1", "3:4", "4:5", "5:4", "3:2", "2:3", "21:9", "9:21"
+    };
 
     public MainWindow()
     {
@@ -28,6 +64,15 @@ public partial class MainWindow : Window
         OverlayBar.MouseLeftButtonDown += OverlayBar_MouseDown;
         OverlayBar.MouseLeftButtonUp   += OverlayBar_MouseUp;
         OverlayBar.MouseMove           += OverlayBar_MouseMove;
+
+        AttachHandle(HandleTopLeft, OverlayDragMode.ResizeTopLeft);
+        AttachHandle(HandleTop, OverlayDragMode.ResizeTop);
+        AttachHandle(HandleTopRight, OverlayDragMode.ResizeTopRight);
+        AttachHandle(HandleRight, OverlayDragMode.ResizeRight);
+        AttachHandle(HandleBottomRight, OverlayDragMode.ResizeBottomRight);
+        AttachHandle(HandleBottom, OverlayDragMode.ResizeBottom);
+        AttachHandle(HandleBottomLeft, OverlayDragMode.ResizeBottomLeft);
+        AttachHandle(HandleLeft, OverlayDragMode.ResizeLeft);
     }
 
     // ── Browse handlers ──────────────────────────────────────────────────────
@@ -42,8 +87,13 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog() == true)
         {
             TxtImage.Text = dlg.FileName;
-            ImgPreview.Source = new BitmapImage(new Uri(dlg.FileName));
+            var bitmap = new BitmapImage(new Uri(dlg.FileName));
+            ImgPreview.Source = bitmap;
+            _overlayInitialized = false;
+            _snapCenterX = false;
+            _snapCenterY = false;
             UpdateOverlay();
+            UpdateImageInfo(dlg.FileName, bitmap);
         }
     }
 
@@ -68,6 +118,58 @@ public partial class MainWindow : Window
         };
         if (dlg.ShowDialog() == true)
             TxtOutput.Text = dlg.FileName;
+    }
+
+    private void UpdateImageInfo(string imagePath, BitmapSource bitmap)
+    {
+        int width = bitmap.PixelWidth;
+        int height = bitmap.PixelHeight;
+        string aspect = BuildAspectRatioLabel(width, height);
+        double sizeInMb = new FileInfo(imagePath).Length / (1024d * 1024d);
+        string format = GetImageFormatLabel(imagePath);
+
+        TxtImageInfo.Text =
+            $"Image: {width} \u00D7 {height} px   Aspect: {aspect}   Size: {sizeInMb.ToString("0.0", CultureInfo.InvariantCulture)} MB   Format: {format}";
+        TxtImageInfo.Visibility = Visibility.Visible;
+    }
+
+    private static string BuildAspectRatioLabel(int width, int height)
+    {
+        if (width <= 0 || height <= 0)
+            return "-";
+
+        string rawRatio = $"{width}:{height}";
+        int gcd = GreatestCommonDivisor(width, height);
+        string simplifiedRatio = $"{width / gcd}:{height / gcd}";
+
+        if (CommonAspectRatios.Contains(simplifiedRatio))
+            return simplifiedRatio;
+
+        return rawRatio == simplifiedRatio ? simplifiedRatio : $"{rawRatio} -> {simplifiedRatio}";
+    }
+
+    private static int GreatestCommonDivisor(int a, int b)
+    {
+        a = Math.Abs(a);
+        b = Math.Abs(b);
+        while (b != 0)
+        {
+            int temp = a % b;
+            a = b;
+            b = temp;
+        }
+        return a == 0 ? 1 : a;
+    }
+
+    private static string GetImageFormatLabel(string imagePath)
+    {
+        return Path.GetExtension(imagePath).ToLowerInvariant() switch
+        {
+            ".jpg" => "JPG",
+            ".jpeg" => "JPG",
+            ".png" => "PNG",
+            _ => "Unknown"
+        };
     }
 
     // ── Generate ─────────────────────────────────────────────────────────────
@@ -107,10 +209,23 @@ public partial class MainWindow : Window
                 return;
             }
 
+            if (ChkPlayAfterExport.IsChecked == true)
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = outputPath,
+                    UseShellExecute = true
+                });
+            }
+            
             Progress.IsIndeterminate = false;
             Progress.Value = 100;
-            MessageBox.Show("Done! Video saved to:\n" + outputPath,
-                            "Audio Visualizer", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            if (ChkPlayAfterExport.IsChecked != true)
+            {
+                MessageBox.Show("Done! Video saved to:\n" + outputPath,
+                                "Audio Visualizer", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
         catch (Exception ex)
         {
@@ -184,23 +299,21 @@ public partial class MainWindow : Window
 
     private string BuildOverlayFilter(int imgWidth, int imgHeight, string color, string drawMode)
     {
-        // Wave height = 20% of image height, minimum 80px
-        int waveH = Math.Max(80, imgHeight / 5);
+        EnsureOverlayStateForImageSize(imgWidth, imgHeight);
 
-        int    offsetPx = (int)Math.Round(_offsetY);
-        string yExpr   = offsetPx == 0
-            ? $"({imgHeight}-{waveH})/2"
-            : $"({imgHeight}-{waveH})/2+{offsetPx}";
+        int waveW = Math.Clamp((int)Math.Round(_overlayWidth), 1, imgWidth);
+        int waveH = Math.Clamp((int)Math.Round(_overlayHeight), 1, imgHeight);
+        int posX = Math.Clamp((int)Math.Round(_overlayX), 0, imgWidth - waveW);
+        int posY = Math.Clamp((int)Math.Round(_overlayY), 0, imgHeight - waveH);
 
-        // showwaves filter: scale audio to image width, draw waveform
+        // showwaves filter: scale audio to overlay rectangle size and draw waveform
         string showwaves =
-            $"showwaves=s={imgWidth}x{waveH}:mode={drawMode}:colors={color}:rate=25";
+            $"showwaves=s={waveW}x{waveH}:mode={drawMode}:colors={color}:rate=25";
 
-        // Overlay waveform on static image
-        // [0:v] is the image (looped), [1:a] feeds showwaves → [wave] → overlay → [v]
+        // Overlay waveform on static image at selected rectangle position
         string filter =
             $"[1:a]{showwaves}[wave];" +
-            $"[0:v][wave]overlay=0:{yExpr}[v]";
+            $"[0:v][wave]overlay={posX}:{posY}[v]";
 
         return filter;
     }
@@ -281,70 +394,405 @@ public partial class MainWindow : Window
         });
     }
 
-    // ── Spectrum position overlay ──────────────────────────────────────────────
+    // -- Spectrum position overlay -------------------------------------------------
 
-    /// <summary>Redraws the semi-transparent bar showing where the spectrum will appear.</summary>
-    private void UpdateOverlay()
+    private void AttachHandle(System.Windows.Shapes.Rectangle handle, OverlayDragMode mode)
     {
-        Rect img = GetImageContentRect();
-        if (img == Rect.Empty)
+        handle.Tag = mode;
+        handle.MouseLeftButtonDown += OverlayHandle_MouseDown;
+        handle.MouseMove += OverlayHandle_MouseMove;
+        handle.MouseLeftButtonUp += OverlayHandle_MouseUp;
+    }
+
+    private void OverlayHandle_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not System.Windows.Shapes.Rectangle handle || handle.Tag is not OverlayDragMode mode)
+            return;
+
+        BeginOverlayDrag(e.GetPosition(OverlayCanvas), mode);
+        if (_isDragging)
         {
-            OverlayBar.Visibility = OverlayTopLine.Visibility = OverlayBottomLine.Visibility = Visibility.Collapsed;
-            CenterGuideLine.Visibility = CenterLabel.Visibility = Visibility.Collapsed;
+            handle.CaptureMouse();
+            e.Handled = true;
+        }
+    }
+
+    private void OverlayHandle_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isDragging)
+            return;
+
+        UpdateOverlayDrag(e.GetPosition(OverlayCanvas));
+        e.Handled = true;
+    }
+
+    private void OverlayHandle_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDragging)
+            return;
+
+        _isDragging = false;
+        _dragMode = OverlayDragMode.None;
+
+        if (sender is UIElement element)
+            element.ReleaseMouseCapture();
+
+        e.Handled = true;
+    }
+
+    private void OverlayBar_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        Rect imageRect = GetImageContentRect();
+        if (imageRect == Rect.Empty || ImgPreview.Source is not BitmapSource bmp)
+            return;
+
+        EnsureOverlayStateForBitmap(bmp);
+        Rect overlayRect = GetOverlayPreviewRect(imageRect, bmp);
+        Point mousePos = e.GetPosition(OverlayCanvas);
+        if (!IsMoveArea(mousePos, overlayRect))
+            return;
+
+        BeginOverlayDrag(mousePos, OverlayDragMode.Move);
+        if (_isDragging)
+        {
+            OverlayBar.CaptureMouse();
+            e.Handled = true;
+        }
+    }
+
+    private void OverlayBar_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (_isDragging)
+        {
+            UpdateOverlayDrag(e.GetPosition(OverlayCanvas));
+            e.Handled = true;
             return;
         }
 
-        // Mirror the FFmpeg wave height: 20 % of image height
-        var    bmpSrc      = (BitmapSource)ImgPreview.Source;
-        double previewScale = img.Height / bmpSrc.PixelHeight;
-        double barH = Math.Max(6, img.Height * 0.20);
-        double barY = Math.Clamp(
-            img.Top + (img.Height - barH) / 2.0 + _offsetY * previewScale,
-            img.Top, img.Bottom - barH);
+        Rect imageRect = GetImageContentRect();
+        if (imageRect == Rect.Empty || ImgPreview.Source is not BitmapSource bmp)
+            return;
+
+        EnsureOverlayStateForBitmap(bmp);
+        Rect overlayRect = GetOverlayPreviewRect(imageRect, bmp);
+        OverlayBar.Cursor = IsMoveArea(e.GetPosition(OverlayCanvas), overlayRect) ? Cursors.SizeAll : Cursors.Arrow;
+    }
+
+    private void OverlayBar_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_isDragging)
+            return;
+
+        _isDragging = false;
+        _dragMode = OverlayDragMode.None;
+        OverlayBar.ReleaseMouseCapture();
+        e.Handled = true;
+    }
+
+    private void BeginOverlayDrag(Point mousePos, OverlayDragMode mode)
+    {
+        Rect imageRect = GetImageContentRect();
+        if (imageRect == Rect.Empty || ImgPreview.Source is not BitmapSource bmp)
+            return;
+
+        EnsureOverlayStateForBitmap(bmp);
+
+        _dragStartMouse = mousePos;
+        _dragStartRectPreview = GetOverlayPreviewRect(imageRect, bmp);
+        _dragMode = mode;
+        _isDragging = true;
+    }
+
+    private void UpdateOverlayDrag(Point currentMousePos)
+    {
+        if (!_isDragging || _dragMode == OverlayDragMode.None)
+            return;
+
+        Rect imageRect = GetImageContentRect();
+        if (imageRect == Rect.Empty || ImgPreview.Source is not BitmapSource bmp)
+            return;
+
+        Vector delta = currentMousePos - _dragStartMouse;
+        Rect previewRect;
+
+        if (_dragMode == OverlayDragMode.Move)
+        {
+            double maxLeft = Math.Max(imageRect.Left, imageRect.Right - _dragStartRectPreview.Width);
+            double maxTop = Math.Max(imageRect.Top, imageRect.Bottom - _dragStartRectPreview.Height);
+
+            double left = Math.Clamp(_dragStartRectPreview.Left + delta.X, imageRect.Left, maxLeft);
+            double top = Math.Clamp(_dragStartRectPreview.Top + delta.Y, imageRect.Top, maxTop);
+            previewRect = new Rect(left, top, _dragStartRectPreview.Width, _dragStartRectPreview.Height);
+        }
+        else
+        {
+            previewRect = ResizePreviewRect(_dragStartRectPreview, delta.X, delta.Y, _dragMode, imageRect);
+        }
+
+        ApplyCenterSnap(ref previewRect, imageRect);
+        UpdateOverlayFromPreviewRect(previewRect, imageRect, bmp);
+        UpdateOverlay();
+    }
+
+    private static bool IsMoveArea(Point point, Rect rect)
+    {
+        if (!rect.Contains(point))
+            return false;
+
+        return point.X > rect.Left + MoveEdgeExclusionPreview
+            && point.X < rect.Right - MoveEdgeExclusionPreview
+            && point.Y > rect.Top + MoveEdgeExclusionPreview
+            && point.Y < rect.Bottom - MoveEdgeExclusionPreview;
+    }
+
+    private static Rect ResizePreviewRect(Rect startRect, double deltaX, double deltaY, OverlayDragMode mode, Rect imageRect)
+    {
+        bool resizeLeft = mode is OverlayDragMode.ResizeLeft or OverlayDragMode.ResizeTopLeft or OverlayDragMode.ResizeBottomLeft;
+        bool resizeRight = mode is OverlayDragMode.ResizeRight or OverlayDragMode.ResizeTopRight or OverlayDragMode.ResizeBottomRight;
+        bool resizeTop = mode is OverlayDragMode.ResizeTop or OverlayDragMode.ResizeTopLeft or OverlayDragMode.ResizeTopRight;
+        bool resizeBottom = mode is OverlayDragMode.ResizeBottom or OverlayDragMode.ResizeBottomLeft or OverlayDragMode.ResizeBottomRight;
+
+        double minW = Math.Min(MinOverlayWidthPreview, imageRect.Width);
+        double minH = Math.Min(MinOverlayHeightPreview, imageRect.Height);
+
+        double left = startRect.Left;
+        double right = startRect.Right;
+        double top = startRect.Top;
+        double bottom = startRect.Bottom;
+
+        if (resizeLeft) left += deltaX;
+        if (resizeRight) right += deltaX;
+        if (resizeTop) top += deltaY;
+        if (resizeBottom) bottom += deltaY;
+
+        if (right - left < minW)
+        {
+            if (resizeLeft && !resizeRight)
+                left = right - minW;
+            else if (resizeRight && !resizeLeft)
+                right = left + minW;
+        }
+
+        if (bottom - top < minH)
+        {
+            if (resizeTop && !resizeBottom)
+                top = bottom - minH;
+            else if (resizeBottom && !resizeTop)
+                bottom = top + minH;
+        }
+
+        if (resizeLeft && !resizeRight)
+            left = Math.Clamp(left, imageRect.Left, right - minW);
+        if (resizeRight && !resizeLeft)
+            right = Math.Clamp(right, left + minW, imageRect.Right);
+
+        if (resizeTop && !resizeBottom)
+            top = Math.Clamp(top, imageRect.Top, bottom - minH);
+        if (resizeBottom && !resizeTop)
+            bottom = Math.Clamp(bottom, top + minH, imageRect.Bottom);
+
+        double width = Math.Clamp(right - left, minW, imageRect.Width);
+        double height = Math.Clamp(bottom - top, minH, imageRect.Height);
+
+        left = Math.Clamp(left, imageRect.Left, imageRect.Right - width);
+        top = Math.Clamp(top, imageRect.Top, imageRect.Bottom - height);
+
+        return new Rect(left, top, width, height);
+    }
+
+    private void ApplyCenterSnap(ref Rect rect, Rect imageRect)
+    {
+        double imageCenterX = imageRect.Left + imageRect.Width / 2.0;
+        double imageCenterY = imageRect.Top + imageRect.Height / 2.0;
+
+        double rectCenterX = rect.Left + rect.Width / 2.0;
+        double rectCenterY = rect.Top + rect.Height / 2.0;
+
+        _snapCenterX = Math.Abs(rectCenterX - imageCenterX) <= SnapThresholdPreview;
+        _snapCenterY = Math.Abs(rectCenterY - imageCenterY) <= SnapThresholdPreview;
+
+        if (_snapCenterX)
+        {
+            double maxLeft = Math.Max(imageRect.Left, imageRect.Right - rect.Width);
+            rect.X = Math.Clamp(imageCenterX - rect.Width / 2.0, imageRect.Left, maxLeft);
+        }
+
+        if (_snapCenterY)
+        {
+            double maxTop = Math.Max(imageRect.Top, imageRect.Bottom - rect.Height);
+            rect.Y = Math.Clamp(imageCenterY - rect.Height / 2.0, imageRect.Top, maxTop);
+        }
+    }
+
+    private void EnsureOverlayStateForBitmap(BitmapSource bmp)
+    {
+        EnsureOverlayStateForImageSize(bmp.PixelWidth, bmp.PixelHeight);
+    }
+
+    private void EnsureOverlayStateForImageSize(int imageWidth, int imageHeight)
+    {
+        if (!_overlayInitialized)
+        {
+            _overlayX = 0;
+            _overlayWidth = imageWidth;
+            _overlayHeight = Math.Max(80.0, imageHeight / 5.0);
+            _overlayY = (imageHeight - _overlayHeight) / 2.0;
+            _overlayInitialized = true;
+        }
+
+        _overlayWidth = Math.Clamp(_overlayWidth, 1.0, imageWidth);
+        _overlayHeight = Math.Clamp(_overlayHeight, 1.0, imageHeight);
+        _overlayX = Math.Clamp(_overlayX, 0.0, imageWidth - _overlayWidth);
+        _overlayY = Math.Clamp(_overlayY, 0.0, imageHeight - _overlayHeight);
+    }
+
+    private Rect GetOverlayPreviewRect(Rect imageRect, BitmapSource bmp)
+    {
+        double scaleX = imageRect.Width / bmp.PixelWidth;
+        double scaleY = imageRect.Height / bmp.PixelHeight;
+
+        return new Rect(
+            imageRect.Left + (_overlayX * scaleX),
+            imageRect.Top + (_overlayY * scaleY),
+            _overlayWidth * scaleX,
+            _overlayHeight * scaleY);
+    }
+
+    private void UpdateOverlayFromPreviewRect(Rect previewRect, Rect imageRect, BitmapSource bmp)
+    {
+        double scaleX = bmp.PixelWidth / imageRect.Width;
+        double scaleY = bmp.PixelHeight / imageRect.Height;
+
+        _overlayX = (previewRect.Left - imageRect.Left) * scaleX;
+        _overlayY = (previewRect.Top - imageRect.Top) * scaleY;
+        _overlayWidth = previewRect.Width * scaleX;
+        _overlayHeight = previewRect.Height * scaleY;
+
+        EnsureOverlayStateForImageSize(bmp.PixelWidth, bmp.PixelHeight);
+    }
+
+    private static void SetHandlePosition(System.Windows.Shapes.Rectangle handle, double centerX, double centerY)
+    {
+        Canvas.SetLeft(handle, centerX - (HandleSizePreview / 2.0));
+        Canvas.SetTop(handle, centerY - (HandleSizePreview / 2.0));
+        handle.Visibility = Visibility.Visible;
+    }
+
+    private void HideOverlayElements()
+    {
+        OverlayBar.Visibility = Visibility.Collapsed;
+        OverlayTopLine.Visibility = Visibility.Collapsed;
+        OverlayBottomLine.Visibility = Visibility.Collapsed;
+        OverlayLeftLine.Visibility = Visibility.Collapsed;
+        OverlayRightLine.Visibility = Visibility.Collapsed;
+
+        CenterGuideLine.Visibility = Visibility.Collapsed;
+        CenterGuideLineVertical.Visibility = Visibility.Collapsed;
+        CenterLabel.Visibility = Visibility.Collapsed;
+
+        HandleTopLeft.Visibility = Visibility.Collapsed;
+        HandleTop.Visibility = Visibility.Collapsed;
+        HandleTopRight.Visibility = Visibility.Collapsed;
+        HandleRight.Visibility = Visibility.Collapsed;
+        HandleBottomRight.Visibility = Visibility.Collapsed;
+        HandleBottom.Visibility = Visibility.Collapsed;
+        HandleBottomLeft.Visibility = Visibility.Collapsed;
+        HandleLeft.Visibility = Visibility.Collapsed;
+    }
+
+    /// <summary>Redraws the semi-transparent overlay rectangle showing where the spectrum will appear.</summary>
+    private void UpdateOverlay()
+    {
+        Rect imageRect = GetImageContentRect();
+        if (imageRect == Rect.Empty || ImgPreview.Source is not BitmapSource bmp)
+        {
+            _snapCenterX = false;
+            _snapCenterY = false;
+            HideOverlayElements();
+            return;
+        }
+
+        EnsureOverlayStateForBitmap(bmp);
+        Rect overlayRect = GetOverlayPreviewRect(imageRect, bmp);
 
         Color tint = ParseSpectrumColor(_spectrumColor);
 
         // Semi-transparent fill
-        OverlayBar.Fill   = new SolidColorBrush(Color.FromArgb(115, tint.R, tint.G, tint.B));
-        OverlayBar.Width  = img.Width;
-        OverlayBar.Height = barH;
-        Canvas.SetLeft(OverlayBar, img.Left);
-        Canvas.SetTop(OverlayBar,  barY);
+        OverlayBar.Fill = new SolidColorBrush(Color.FromArgb(115, tint.R, tint.G, tint.B));
+        OverlayBar.Width = overlayRect.Width;
+        OverlayBar.Height = overlayRect.Height;
+        Canvas.SetLeft(OverlayBar, overlayRect.Left);
+        Canvas.SetTop(OverlayBar, overlayRect.Top);
         OverlayBar.Visibility = Visibility.Visible;
 
-        // Bright border lines (top and bottom)
+        // Bright border lines
         var lineBrush = new SolidColorBrush(Color.FromArgb(220, tint.R, tint.G, tint.B));
 
-        OverlayTopLine.Fill  = lineBrush;
-        OverlayTopLine.Width = img.Width;
-        Canvas.SetLeft(OverlayTopLine, img.Left);
-        Canvas.SetTop(OverlayTopLine,  barY);
+        OverlayTopLine.Fill = lineBrush;
+        OverlayTopLine.Width = overlayRect.Width;
+        Canvas.SetLeft(OverlayTopLine, overlayRect.Left);
+        Canvas.SetTop(OverlayTopLine, overlayRect.Top);
         OverlayTopLine.Visibility = Visibility.Visible;
 
-        OverlayBottomLine.Fill  = lineBrush;
-        OverlayBottomLine.Width = img.Width;
-        Canvas.SetLeft(OverlayBottomLine, img.Left);
-        Canvas.SetTop(OverlayBottomLine,  barY + barH - 1);
+        OverlayBottomLine.Fill = lineBrush;
+        OverlayBottomLine.Width = overlayRect.Width;
+        Canvas.SetLeft(OverlayBottomLine, overlayRect.Left);
+        Canvas.SetTop(OverlayBottomLine, overlayRect.Bottom - 1);
         OverlayBottomLine.Visibility = Visibility.Visible;
 
-        // Center snap guide – visible only when snapped
-        if (_offsetY == 0.0)
-        {
-            double guideY = img.Top + img.Height / 2.0;
-            CenterGuideLine.Fill  = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
-            CenterGuideLine.Width = img.Width;
-            Canvas.SetLeft(CenterGuideLine, img.Left);
-            Canvas.SetTop(CenterGuideLine,  guideY);
-            CenterGuideLine.Visibility = Visibility.Visible;
+        OverlayLeftLine.Fill = lineBrush;
+        OverlayLeftLine.Height = overlayRect.Height;
+        Canvas.SetLeft(OverlayLeftLine, overlayRect.Left);
+        Canvas.SetTop(OverlayLeftLine, overlayRect.Top);
+        OverlayLeftLine.Visibility = Visibility.Visible;
 
-            Canvas.SetLeft(CenterLabel, img.Left + 4);
-            Canvas.SetTop(CenterLabel,  guideY + 2);
-            CenterLabel.Visibility = Visibility.Visible;
+        OverlayRightLine.Fill = lineBrush;
+        OverlayRightLine.Height = overlayRect.Height;
+        Canvas.SetLeft(OverlayRightLine, overlayRect.Right - 1);
+        Canvas.SetTop(OverlayRightLine, overlayRect.Top);
+        OverlayRightLine.Visibility = Visibility.Visible;
+
+        // Resize handles
+        double midX = overlayRect.Left + overlayRect.Width / 2.0;
+        double midY = overlayRect.Top + overlayRect.Height / 2.0;
+
+        SetHandlePosition(HandleTopLeft, overlayRect.Left, overlayRect.Top);
+        SetHandlePosition(HandleTop, midX, overlayRect.Top);
+        SetHandlePosition(HandleTopRight, overlayRect.Right, overlayRect.Top);
+        SetHandlePosition(HandleRight, overlayRect.Right, midY);
+        SetHandlePosition(HandleBottomRight, overlayRect.Right, overlayRect.Bottom);
+        SetHandlePosition(HandleBottom, midX, overlayRect.Bottom);
+        SetHandlePosition(HandleBottomLeft, overlayRect.Left, overlayRect.Bottom);
+        SetHandlePosition(HandleLeft, overlayRect.Left, midY);
+
+        // Snap guides
+        if (_snapCenterY)
+        {
+            CenterGuideLine.Fill = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+            CenterGuideLine.Width = imageRect.Width;
+            Canvas.SetLeft(CenterGuideLine, imageRect.Left);
+            Canvas.SetTop(CenterGuideLine, imageRect.Top + (imageRect.Height / 2.0));
+            CenterGuideLine.Visibility = Visibility.Visible;
         }
         else
         {
-            CenterGuideLine.Visibility = CenterLabel.Visibility = Visibility.Collapsed;
+            CenterGuideLine.Visibility = Visibility.Collapsed;
         }
+
+        if (_snapCenterX)
+        {
+            CenterGuideLineVertical.Fill = new SolidColorBrush(Color.FromArgb(180, 255, 255, 255));
+            CenterGuideLineVertical.Height = imageRect.Height;
+            Canvas.SetLeft(CenterGuideLineVertical, imageRect.Left + (imageRect.Width / 2.0));
+            Canvas.SetTop(CenterGuideLineVertical, imageRect.Top);
+            CenterGuideLineVertical.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            CenterGuideLineVertical.Visibility = Visibility.Collapsed;
+        }
+
+        CenterLabel.Visibility = Visibility.Collapsed;
     }
 
     /// <summary>Returns the pixel rect of the rendered image content inside ImgPreview (Stretch="Uniform" letterboxes).</summary>
@@ -356,49 +804,19 @@ public partial class MainWindow : Window
         if (panW == 0 || panH == 0) return Rect.Empty;
 
         double scale = Math.Min(panW / bmp.PixelWidth, panH / bmp.PixelHeight);
-        double rendW = bmp.PixelWidth  * scale;
+        double rendW = bmp.PixelWidth * scale;
         double rendH = bmp.PixelHeight * scale;
-        return new Rect((panW - rendW) / 2.0, (panH - rendH) / 2.0, rendW, rendH);
+
+        // Compute in OverlayCanvas coordinates (not ImgPreview-local), so letterboxing offsets are correct.
+        Point previewTopLeft = ImgPreview.TranslatePoint(new Point(0, 0), OverlayCanvas);
+        return new Rect(
+            previewTopLeft.X + (panW - rendW) / 2.0,
+            previewTopLeft.Y + (panH - rendH) / 2.0,
+            rendW,
+            rendH);
     }
 
-    // ── Overlay bar drag handlers ─────────────────────────────────────────────
-
-    private void OverlayBar_MouseDown(object sender, MouseButtonEventArgs e)
-    {
-        _isDragging       = true;
-        _dragStartMouseY  = e.GetPosition(OverlayCanvas).Y;
-        _dragStartOffsetY = _offsetY;
-        OverlayBar.CaptureMouse();
-    }
-
-    private void OverlayBar_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (!_isDragging) return;
-
-        Rect img = GetImageContentRect();
-        if (img == Rect.Empty || ImgPreview.Source is not BitmapSource bmpSrc) return;
-
-        double previewScale = img.Height / bmpSrc.PixelHeight;
-        double newOffsetY   = _dragStartOffsetY + (e.GetPosition(OverlayCanvas).Y - _dragStartMouseY) / previewScale;
-
-        // Snap to center when within 10 preview pixels of it
-        if (Math.Abs(newOffsetY * previewScale) < 10.0)
-            newOffsetY = 0.0;
-
-        // Clamp: bar must stay fully inside the image
-        double maxOffset = (bmpSrc.PixelHeight - Math.Max(80, bmpSrc.PixelHeight / 5)) / 2.0;
-        _offsetY = Math.Clamp(newOffsetY, -maxOffset, maxOffset);
-
-        UpdateOverlay();
-    }
-
-    private void OverlayBar_MouseUp(object sender, MouseButtonEventArgs e)
-    {
-        _isDragging = false;
-        OverlayBar.ReleaseMouseCapture();
-    }
-
-    // ── Color picker ──────────────────────────────────────────────────────────
+    // -- Color picker ──────────────────────────────────────────────────────────
 
     private async void BtnPickColor_Click(object sender, RoutedEventArgs e)
     {
@@ -485,3 +903,5 @@ public partial class MainWindow : Window
     private void ShowError(string message) =>
         MessageBox.Show(message, "Audio Visualizer – Error", MessageBoxButton.OK, MessageBoxImage.Error);
 }
+
+

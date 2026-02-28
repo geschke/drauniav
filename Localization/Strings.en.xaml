@@ -1,0 +1,81 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AppTitle">Audio Visualizer</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="MenuFile">_File</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="MenuFileExit">E_xit</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="MenuLanguage">_Language</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="MenuLanguageSystem">System Default</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="MenuLanguageGerman">Deutsch</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="MenuLanguageEnglish">English</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="MenuHelp">_Help</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="MenuHelpAbout">_About...</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelBackground">Background:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelAudio">Audio (MP3):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelOutput">Output (MP4):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonBrowse">Browse</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelColor">Color:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonPickColor">Choose color...</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelVisualizer">Visualizer:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonVisualizerSettings">Visualizer settings...</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonGenerate">Generate</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="CheckPlayAfterGenerate">Play after export</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelCommandPreview">FFmpeg CLI command</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="PlaceholderCommandPreview">FFmpeg command preview appears here after selecting a background image.</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogSelectBackgroundTitle">Select background image</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogFilterImage">Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogSelectAudioTitle">Select audio file</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogFilterAudio">MP3 files (*.mp3)|*.mp3|All audio files (*.mp3;*.wav;*.aac)|*.mp3;*.wav;*.aac</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogSaveOutputTitle">Save output video</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogFilterOutput">MP4 video (*.mp4)|*.mp4</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ImageInfoTemplate">Image: {0} × {1} px   Aspect: {2}   Size: {3} MB   Format: {4}</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ImageFormatUnknown">Unknown</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VisualizerSummaryTemplate">{0} | {1}:{2} | {3} fps | {4} alpha</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ValidationTitle">Validation</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ValidationBackground">Please select a valid background image.</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ValidationAudio">Please select a valid audio file.</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ValidationOutput">Please choose an output file path.</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ErrorDetectResolution">Could not detect image resolution via ffprobe.</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ErrorFfmpegTemplate">FFmpeg error:{0}{0}{1}</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="GenerateSuccessTitle">Audio Visualizer</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="GenerateSuccessMessage">Done! Video saved to:{0}{1}</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ErrorTitle">Audio Visualizer - Error</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ColorPickerTitle">Pick color</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ColorPickerEyedropper">Pick from image</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonCancel">Cancel</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonApply">Apply</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VisualizerDialogTitle">Visualizer Settings</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VisualizerDialogHeader">Visualizer Settings</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelPreset">Preset:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelType">Type:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelMode">Mode:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelLineThickness">Line thickness:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelAlpha">Transparency (0..1):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelRate">Rate (fps):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelVolume">Volume (dB):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelAScale">AScale (showfreqs):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelWinSize">Win Size (showfreqs):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelFScale">FScale (showfreqs):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelColorKey">Remove black background using colorkey</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelKeySimilarity">Key Similarity:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelKeyBlend">Key Blend:</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutTitle">About</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutHeader">About Audio Visualizer</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutVersionLabel">Version:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutAuthorLabel">Author:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutHomepageLabel">Homepage:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutGithubLabel">GitHub:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutClose">Close</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutAuthorValue">Ralf</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutHomepageValue">(to be added)</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutGithubValue">(to be added)</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutVersionValueTemplate">Version {0}</sys:String>
+</ResourceDictionary>

@@ -66,6 +66,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        LocalizationManager.LanguageChanged += LocalizationManager_LanguageChanged;
+        UpdateLanguageMenuChecks();
         UpdateVisualizerSummary();
         UpdateCommandPreview();
         ImgPreview.SizeChanged         += (_, _) => UpdateOverlay();
@@ -83,14 +85,63 @@ public partial class MainWindow : Window
         AttachHandle(HandleLeft, OverlayDragMode.ResizeLeft);
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        LocalizationManager.LanguageChanged -= LocalizationManager_LanguageChanged;
+        base.OnClosed(e);
+    }
+
+    private void MenuFileExit_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void MenuLanguageSystem_Click(object sender, RoutedEventArgs e) =>
+        LocalizationManager.SetPreferredLanguage(AppLanguage.System);
+
+    private void MenuLanguageGerman_Click(object sender, RoutedEventArgs e) =>
+        LocalizationManager.SetPreferredLanguage(AppLanguage.German);
+
+    private void MenuLanguageEnglish_Click(object sender, RoutedEventArgs e) =>
+        LocalizationManager.SetPreferredLanguage(AppLanguage.English);
+
+    private void MenuHelpAbout_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new AboutDialog { Owner = this };
+        dlg.ShowDialog();
+    }
+
+    private void LocalizationManager_LanguageChanged(object? sender, EventArgs e)
+    {
+        UpdateLanguageMenuChecks();
+        RefreshLocalizedRuntimeTexts();
+    }
+
+    private void UpdateLanguageMenuChecks()
+    {
+        if (MiLanguageSystem == null || MiLanguageGerman == null || MiLanguageEnglish == null)
+            return;
+
+        MiLanguageSystem.IsChecked = LocalizationManager.SelectedLanguage == AppLanguage.System;
+        MiLanguageGerman.IsChecked = LocalizationManager.SelectedLanguage == AppLanguage.German;
+        MiLanguageEnglish.IsChecked = LocalizationManager.SelectedLanguage == AppLanguage.English;
+    }
+
+    private void RefreshLocalizedRuntimeTexts()
+    {
+        UpdateVisualizerSummary();
+
+        if (ImgPreview.Source is BitmapSource bmp && File.Exists(TxtImage.Text))
+            UpdateImageInfo(TxtImage.Text, bmp);
+
+        UpdateCommandPreview();
+    }
+
     // â”€â”€ Browse handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void BrowseImage_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new OpenFileDialog
         {
-            Title = "Select background image",
-            Filter = "Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png"
+            Title = Loc.Get("DialogSelectBackgroundTitle"),
+            Filter = Loc.Get("DialogFilterImage")
         };
         if (dlg.ShowDialog() == true)
         {
@@ -110,8 +161,8 @@ public partial class MainWindow : Window
     {
         var dlg = new OpenFileDialog
         {
-            Title = "Select audio file",
-            Filter = "MP3 files (*.mp3)|*.mp3|All audio files (*.mp3;*.wav;*.aac)|*.mp3;*.wav;*.aac"
+            Title = Loc.Get("DialogSelectAudioTitle"),
+            Filter = Loc.Get("DialogFilterAudio")
         };
         if (dlg.ShowDialog() == true)
         {
@@ -124,8 +175,8 @@ public partial class MainWindow : Window
     {
         var dlg = new SaveFileDialog
         {
-            Title = "Save output video",
-            Filter = "MP4 video (*.mp4)|*.mp4",
+            Title = Loc.Get("DialogSaveOutputTitle"),
+            Filter = Loc.Get("DialogFilterOutput"),
             DefaultExt = ".mp4"
         };
         if (dlg.ShowDialog() == true)
@@ -143,8 +194,14 @@ public partial class MainWindow : Window
         double sizeInMb = new FileInfo(imagePath).Length / (1024d * 1024d);
         string format = GetImageFormatLabel(imagePath);
 
-        TxtImageInfo.Text =
-            $"Image: {width} \u00D7 {height} px   Aspect: {aspect}   Size: {sizeInMb.ToString("0.0", CultureInfo.InvariantCulture)} MB   Format: {format}";
+        TxtImageInfo.Text = string.Format(
+            CultureInfo.CurrentCulture,
+            Loc.Get("ImageInfoTemplate"),
+            width,
+            height,
+            aspect,
+            sizeInMb.ToString("0.0", CultureInfo.CurrentCulture),
+            format);
         TxtImageInfo.Visibility = Visibility.Visible;
     }
 
@@ -183,7 +240,7 @@ public partial class MainWindow : Window
             ".jpg" => "JPG",
             ".jpeg" => "JPG",
             ".png" => "PNG",
-            _ => "Unknown"
+            _ => Loc.Get("ImageFormatUnknown")
         };
     }
 
@@ -200,7 +257,15 @@ public partial class MainWindow : Window
 
     private void UpdateVisualizerSummary()
     {
-        TxtVisualizerSummary.Text = _visualizerSettings.ToSummaryText();
+        string alphaText = $"{Math.Round(_visualizerSettings.Alpha * 100):0}%";
+        TxtVisualizerSummary.Text = string.Format(
+            CultureInfo.CurrentCulture,
+            Loc.Get("VisualizerSummaryTemplate"),
+            _visualizerSettings.PresetName,
+            _visualizerSettings.FilterType,
+            _visualizerSettings.Mode,
+            _visualizerSettings.Rate,
+            alphaText);
     }
 
     // â”€â”€ Generate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -222,7 +287,7 @@ public partial class MainWindow : Window
             var (width, height) = await GetImageResolutionAsync(ffprobe, imagePath);
             if (width == 0 || height == 0)
             {
-                ShowError("Could not detect image resolution via ffprobe.");
+                ShowError(Loc.Get("ErrorDetectResolution"));
                 return;
             }
 
@@ -236,7 +301,7 @@ public partial class MainWindow : Window
             string? error = await RunProcessAsync(ffmpeg, args);
             if (error != null)
             {
-                ShowError($"FFmpeg error:\n\n{error}");
+                ShowError(string.Format(CultureInfo.CurrentCulture, Loc.Get("ErrorFfmpegTemplate"), Environment.NewLine, error));
                 return;
             }
 
@@ -254,8 +319,11 @@ public partial class MainWindow : Window
 
             if (ChkPlayAfterExport.IsChecked != true)
             {
-                MessageBox.Show("Done! Video saved to:\n" + outputPath,
-                                "Audio Visualizer", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    string.Format(CultureInfo.CurrentCulture, Loc.Get("GenerateSuccessMessage"), Environment.NewLine, outputPath),
+                    Loc.Get("GenerateSuccessTitle"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
         catch (Exception ex)
@@ -278,13 +346,13 @@ public partial class MainWindow : Window
         output = TxtOutput.Text.Trim();
 
         if (string.IsNullOrEmpty(image) || !File.Exists(image))
-        { MessageBox.Show("Please select a valid background image.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning); return false; }
+        { MessageBox.Show(Loc.Get("ValidationBackground"), Loc.Get("ValidationTitle"), MessageBoxButton.OK, MessageBoxImage.Warning); return false; }
 
         if (string.IsNullOrEmpty(audio) || !File.Exists(audio))
-        { MessageBox.Show("Please select a valid audio file.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning); return false; }
+        { MessageBox.Show(Loc.Get("ValidationAudio"), Loc.Get("ValidationTitle"), MessageBoxButton.OK, MessageBoxImage.Warning); return false; }
 
         if (string.IsNullOrEmpty(output))
-        { MessageBox.Show("Please choose an output file path.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning); return false; }
+        { MessageBox.Show(Loc.Get("ValidationOutput"), Loc.Get("ValidationTitle"), MessageBoxButton.OK, MessageBoxImage.Warning); return false; }
 
         return true;
     }
@@ -333,7 +401,7 @@ public partial class MainWindow : Window
 
         if (ImgPreview.Source is not BitmapSource bmp || bmp.PixelWidth <= 0 || bmp.PixelHeight <= 0)
         {
-            TxtCommandPreview.Text = "FFmpeg command preview appears here after selecting a background image.";
+            TxtCommandPreview.Text = Loc.Get("PlaceholderCommandPreview");
             return;
         }
 
@@ -1184,7 +1252,7 @@ public partial class MainWindow : Window
     }
 
     private void ShowError(string message) =>
-        MessageBox.Show(message, "Audio Visualizer - Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show(message, Loc.Get("ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
 }
 
 

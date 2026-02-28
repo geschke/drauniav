@@ -1,176 +1,286 @@
 <Window x:Class="AudioVisualizer.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Audio Visualizer" Height="360" Width="920"
-        ResizeMode="CanResize" MinWidth="760" MinHeight="300"
-        WindowStartupLocation="CenterScreen">
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="Audio Visualizer" Height="760" Width="1160"
+        ResizeMode="CanResize" MinWidth="920" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Background="#F3F5F7">
 
     <Window.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#2563EB"/>
+        <SolidColorBrush x:Key="PanelBorderBrush" Color="#D4D8DF"/>
+        <SolidColorBrush x:Key="ButtonHoverBrush" Color="#F0F4FB"/>
+        <SolidColorBrush x:Key="ButtonPressedBrush" Color="#E4ECFA"/>
+
         <Style TargetType="Label">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Width" Value="90"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
         </Style>
-        <Style TargetType="TextBox">
+
+        <Style x:Key="InputTextBoxStyle" TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Height" Value="26"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="BorderBrush" Value="#C9D0DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
         </Style>
+
         <Style TargetType="Button">
-            <Setter Property="Width" Value="70"/>
-            <Setter Property="Height" Value="26"/>
+            <Setter Property="Width" Value="96"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="BorderBrush" Value="#C9D0DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource ButtonHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource ButtonPressedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Width" Value="140"/>
+            <Setter Property="Height" Value="36"/>
         </Style>
     </Window.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="560"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <!-- Right: image preview panel -->
-        <Grid Grid.Column="1" Margin="0,14,14,14">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-        <Border Grid.Row="0" Background="#404040">
-            <Grid>
-                <Image x:Name="ImgPreview" Stretch="Uniform"/>
-                <!-- Spectrum position overlay (Canvas lets us position children by pixel) -->
-                <Canvas x:Name="OverlayCanvas">
-                    <!-- decorative / non-interactive elements -->
-                    <Rectangle x:Name="CenterGuideLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
-                    <Rectangle x:Name="CenterGuideLineVertical" Width="1" Visibility="Collapsed" IsHitTestVisible="False"/>
-                    <TextBlock  x:Name="CenterLabel" Text="· Mitte ·" FontSize="10"
-                                Foreground="White" Opacity="0.80" Visibility="Collapsed" IsHitTestVisible="False"/>
-                    <!-- draggable/resizable overlay rectangle -->
-                    <Rectangle x:Name="OverlayBar"        Visibility="Collapsed" Cursor="SizeAll"/>
-                    <Rectangle x:Name="OverlayTopLine"    Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
-                    <Rectangle x:Name="OverlayBottomLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
-                    <Rectangle x:Name="OverlayLeftLine"   Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
-                    <Rectangle x:Name="OverlayRightLine"  Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
-                    <Rectangle x:Name="HandleTopLeft"     Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNWSE"/>
-                    <Rectangle x:Name="HandleTop"         Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNS"/>
-                    <Rectangle x:Name="HandleTopRight"    Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNESW"/>
-                    <Rectangle x:Name="HandleRight"       Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeWE"/>
-                    <Rectangle x:Name="HandleBottomRight" Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNWSE"/>
-                    <Rectangle x:Name="HandleBottom"      Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNS"/>
-                    <Rectangle x:Name="HandleBottomLeft"  Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNESW"/>
-                    <Rectangle x:Name="HandleLeft"        Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeWE"/>
-                </Canvas>
-            </Grid>
-        </Border>
-
-        <TextBlock x:Name="TxtImageInfo"
-                   Grid.Row="1"
-                   Margin="0,6,0,0"
-                   FontSize="11"
-                   Foreground="#9A9A9A"
-                   TextWrapping="Wrap"
-                   Visibility="Collapsed"/>
-        </Grid>
-
-        <!-- Left: existing controls -->
-        <Grid Grid.Column="0" Margin="14">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="14"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="14"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Row 0: Background Image -->
-        <Grid Grid.Row="0" Margin="0,0,0,8">
+        <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="620"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="76"/>
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Content="Background:"/>
-            <TextBox Grid.Column="1" x:Name="TxtImage" Margin="0,0,6,0" IsReadOnly="True"/>
-            <Button Grid.Column="2" Content="Browse..." Click="BrowseImage_Click"/>
+
+            <!-- Left: controls -->
+            <Grid Grid.Column="0" Margin="16,16,8,8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="14"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="14"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Background Image -->
+                <Grid Grid.Row="0" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="120"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Background:"/>
+                    <TextBox Grid.Column="1" x:Name="TxtImage" Margin="0,0,8,0" IsReadOnly="True" Style="{StaticResource InputTextBoxStyle}"/>
+                    <Button Grid.Column="2" Click="BrowseImage_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="FolderOpenOutline" Width="16" Height="16" Margin="0,0,6,0"/>
+                            <TextBlock Text="Browse"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Row 1: Audio File -->
+                <Grid Grid.Row="1" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="120"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Audio (MP3):"/>
+                    <TextBox Grid.Column="1" x:Name="TxtAudio" Margin="0,0,8,0" IsReadOnly="True" Style="{StaticResource InputTextBoxStyle}"/>
+                    <Button Grid.Column="2" Click="BrowseAudio_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="MusicNoteOutline" Width="16" Height="16" Margin="0,0,6,0"/>
+                            <TextBlock Text="Browse"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Row 2: Output File -->
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="120"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Column="0" Content="Output (MP4):"/>
+                    <TextBox Grid.Column="1" x:Name="TxtOutput" Margin="0,0,8,0" IsReadOnly="True" Style="{StaticResource InputTextBoxStyle}"/>
+                    <Button Grid.Column="2" Click="BrowseOutput_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <iconPacks:PackIconMaterial Kind="VideoOutline" Width="16" Height="16" Margin="0,0,6,0"/>
+                            <TextBlock Text="Browse"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <Separator Grid.Row="3" VerticalAlignment="Center"/>
+
+                <!-- Row 4: Options -->
+                <StackPanel Grid.Row="4" Orientation="Vertical" HorizontalAlignment="Left">
+                    <StackPanel Orientation="Horizontal">
+                        <Label Content="Color:" Width="48"/>
+                        <Rectangle x:Name="RctColor" Width="26" Height="20" VerticalAlignment="Center"
+                                   Fill="White" Stroke="#888888" StrokeThickness="1" Margin="0,0,8,0"/>
+                        <Button Width="148" Click="BtnPickColor_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial Kind="PaletteOutline" Width="16" Height="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="Farbe wählen..."/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Label Content="Visualizer:" Width="70"/>
+                        <TextBlock x:Name="TxtVisualizerSummary" Width="235" VerticalAlignment="Center"
+                                   TextWrapping="Wrap" Foreground="#4B5563" FontSize="11"/>
+                        <Button Width="220" Margin="8,0,0,0"
+                                VerticalAlignment="Center" Click="BtnVisualizerSettings_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial Kind="Tune" Width="16" Height="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="Visualizer-Einstellungen..."/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <Separator Grid.Row="5" VerticalAlignment="Center"/>
+
+                <!-- Row 6: Generate button -->
+                <Button Grid.Row="6" x:Name="BtnGenerate" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Click="Generate_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="PlayCircleOutline" Width="16" Height="16" Margin="0,0,6,0"/>
+                        <TextBlock Text="Generate"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Row 7: Play after export -->
+                <CheckBox Grid.Row="7" x:Name="ChkPlayAfterExport" Content="Nach dem Generieren abspielen"
+                          Margin="0,10,0,0" HorizontalAlignment="Left" Foreground="#1F2937"/>
+
+                <!-- Row 8: Progress bar -->
+                <ProgressBar Grid.Row="8" x:Name="Progress" Height="16" Margin="0,12,0,0"
+                             IsIndeterminate="False" Value="0" Maximum="100"/>
+            </Grid>
+
+            <!-- Right: image preview panel -->
+            <Grid Grid.Column="1" Margin="8,16,16,8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="#3A3D43" BorderBrush="#2C2F35" BorderThickness="1" CornerRadius="8">
+                    <Grid Margin="6">
+                        <Image x:Name="ImgPreview" Stretch="Uniform"/>
+                        <!-- Spectrum position overlay (Canvas lets us position children by pixel) -->
+                        <Canvas x:Name="OverlayCanvas">
+                            <!-- decorative / non-interactive elements -->
+                            <Rectangle x:Name="CenterGuideLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Rectangle x:Name="CenterGuideLineVertical" Width="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <TextBlock  x:Name="CenterLabel" Text="- Mitte -" FontSize="10"
+                                        Foreground="White" Opacity="0.80" Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <!-- draggable/resizable overlay rectangle -->
+                            <Rectangle x:Name="OverlayBar"        Visibility="Collapsed" Cursor="SizeAll"/>
+                            <Rectangle x:Name="OverlayTopLine"    Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Rectangle x:Name="OverlayBottomLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Rectangle x:Name="OverlayLeftLine"   Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Rectangle x:Name="OverlayRightLine"  Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Rectangle x:Name="HandleTopLeft"     Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNWSE"/>
+                            <Rectangle x:Name="HandleTop"         Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNS"/>
+                            <Rectangle x:Name="HandleTopRight"    Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNESW"/>
+                            <Rectangle x:Name="HandleRight"       Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeWE"/>
+                            <Rectangle x:Name="HandleBottomRight" Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNWSE"/>
+                            <Rectangle x:Name="HandleBottom"      Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNS"/>
+                            <Rectangle x:Name="HandleBottomLeft"  Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNESW"/>
+                            <Rectangle x:Name="HandleLeft"        Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeWE"/>
+                        </Canvas>
+                    </Grid>
+                </Border>
+
+                <TextBlock x:Name="TxtImageInfo"
+                           Grid.Row="1"
+                           Margin="2,8,0,0"
+                           FontSize="11"
+                           Foreground="#6B7280"
+                           TextWrapping="Wrap"
+                           Visibility="Collapsed"/>
+            </Grid>
         </Grid>
 
-        <!-- Row 1: Audio File -->
-        <Grid Grid.Row="1" Margin="0,0,0,8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="90"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="76"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Content="Audio (MP3):"/>
-            <TextBox Grid.Column="1" x:Name="TxtAudio" Margin="0,0,6,0" IsReadOnly="True"/>
-            <Button Grid.Column="2" Content="Browse..." Click="BrowseAudio_Click"/>
-        </Grid>
+        <!-- Bottom: command preview -->
+        <Border Grid.Row="1"
+                Margin="16,0,16,16"
+                Padding="10"
+                Background="#ECEFF3"
+                BorderBrush="{StaticResource PanelBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-        <!-- Row 2: Output File -->
-        <Grid Grid.Row="2" Margin="0,0,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="90"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="76"/>
-            </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Content="Output (MP4):"/>
-            <TextBox Grid.Column="1" x:Name="TxtOutput" Margin="0,0,6,0" IsReadOnly="True"/>
-            <Button Grid.Column="2" Content="Browse..." Click="BrowseOutput_Click"/>
-        </Grid>
+                <TextBlock Text="FFmpeg CLI-Befehl"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="#4A5565"
+                           Margin="0,0,0,6"/>
 
-        <!-- Separator -->
-        <Separator Grid.Row="3" VerticalAlignment="Center"/>
-
-        <!-- Row 4: Options -->
-        <StackPanel Grid.Row="4" Orientation="Vertical" HorizontalAlignment="Left">
-            <StackPanel Orientation="Horizontal">
-                <Label Content="Color:" Width="48"/>
-                <Rectangle x:Name="RctColor" Width="26" Height="20" VerticalAlignment="Center"
-                           Fill="White" Stroke="#888888" StrokeThickness="1" Margin="0,0,6,0"/>
-                <Button Content="Farbe wählen..." Width="120" Height="26" VerticalAlignment="Center"
-                        Click="BtnPickColor_Click"/>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                <Label Content="Visualizer:" Width="70"/>
-                <TextBlock x:Name="TxtVisualizerSummary" Width="210" VerticalAlignment="Center"
-                           TextWrapping="Wrap" Foreground="#666666" FontSize="11"/>
-                <Button Content="Visualizer-Einstellungen..." Width="170" Height="26" Margin="8,0,0,0"
-                        VerticalAlignment="Center" Click="BtnVisualizerSettings_Click"/>
-            </StackPanel>
-        </StackPanel>
-
-        <!-- Separator -->
-        <Separator Grid.Row="5" VerticalAlignment="Center"/>
-
-        <!-- Row 6: Generate button -->
-        <Button Grid.Row="6" x:Name="BtnGenerate" Content="Generate" Width="110" Height="30"
-                HorizontalAlignment="Left" Click="Generate_Click"/>
-
-        <!-- Row 7: FFmpeg command preview -->
-        <TextBox Grid.Row="7" x:Name="TxtCommandPreview"
-                 Height="74"
-                 Margin="0,8,0,0"
-                 IsReadOnly="True"
-                 AcceptsReturn="True"
-                 TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 FontFamily="Consolas"
-                 FontSize="11"/>
-
-        <!-- Row 8: Play after export -->
-        <CheckBox Grid.Row="8" x:Name="ChkPlayAfterExport" Content="Nach dem Generieren abspielen"
-                  Margin="0,8,0,0" HorizontalAlignment="Left"/>
-
-        <!-- Row 9: Progress bar -->
-        <ProgressBar Grid.Row="9" x:Name="Progress" Height="16" Margin="0,10,0,0"
-                     IsIndeterminate="False" Value="0" Maximum="100"/>
-        </Grid>
+                <TextBox Grid.Row="1"
+                         x:Name="TxtCommandPreview"
+                         MinHeight="132"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         HorizontalScrollBarVisibility="Auto"
+                         FontFamily="Consolas"
+                         FontSize="11"
+                         Padding="8"
+                         Background="#F9FAFB"
+                         BorderBrush="#CDD3DD"
+                         BorderThickness="1"/>
+            </Grid>
+        </Border>
     </Grid>
 </Window>
-
-

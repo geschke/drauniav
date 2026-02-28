@@ -23,6 +23,9 @@ public partial class MainWindow : Window
     private const double SnapThresholdPreview = 10.0;
     private const double HandleSizePreview = 6.0;
     private const double MoveEdgeExclusionPreview = 5.0;
+    private const int EyedropperSampleSize = 15;
+    private const double EyedropperLensSize = 120.0;
+    private const double EyedropperLensOffset = 20.0;
 
     private bool _overlayInitialized;
     private bool _isDragging;
@@ -38,6 +41,8 @@ public partial class MainWindow : Window
     private Point _dragStartMouse;
     private Rect _dragStartRectPreview;
     private OverlayDragMode _dragMode;
+    private System.Windows.Controls.Primitives.Popup? _eyedropperMagnifierPopup;
+    private Image? _eyedropperMagnifierImage;
 
     private enum OverlayDragMode
     {
@@ -855,18 +860,173 @@ public partial class MainWindow : Window
     {
         var tcs = new TaskCompletionSource<Color>();
         Mouse.OverrideCursor = Cursors.Cross;
+        EnsureEyedropperMagnifierPopup();
 
-        MouseButtonEventHandler? handler = null;
-        handler = (_, args) =>
+        MouseButtonEventHandler? mouseDownHandler = null;
+        MouseEventHandler? mouseMoveHandler = null;
+
+        void Cleanup()
         {
-            PreviewMouseDown -= handler;
+            if (mouseDownHandler != null) PreviewMouseDown -= mouseDownHandler;
+            if (mouseMoveHandler != null) PreviewMouseMove -= mouseMoveHandler;
             Mouse.OverrideCursor = null;
-            args.Handled = true;   // prevent drag / other child handlers
-            tcs.SetResult(SampleColorAtPoint(args.GetPosition(ImgPreview)));
+            HideEyedropperMagnifier();
+        }
+
+        mouseMoveHandler = (_, args) =>
+        {
+            UpdateEyedropperMagnifier(args.GetPosition(ImgPreview), args.GetPosition(this));
         };
-        PreviewMouseDown += handler;
+
+        mouseDownHandler = (_, args) =>
+        {
+            Cleanup();
+            args.Handled = true;   // prevent drag / other child handlers
+            tcs.TrySetResult(SampleColorAtPoint(args.GetPosition(ImgPreview)));
+        };
+
+        PreviewMouseMove += mouseMoveHandler;
+        PreviewMouseDown += mouseDownHandler;
+
+        UpdateEyedropperMagnifier(Mouse.GetPosition(ImgPreview), Mouse.GetPosition(this));
 
         return tcs.Task;
+    }
+
+    private void EnsureEyedropperMagnifierPopup()
+    {
+        if (_eyedropperMagnifierPopup != null)
+            return;
+
+        var image = new Image
+        {
+            Width = EyedropperLensSize,
+            Height = EyedropperLensSize,
+            Stretch = Stretch.Fill,
+            IsHitTestVisible = false,
+            SnapsToDevicePixels = true
+        };
+
+        var layer = new Grid
+        {
+            Width = EyedropperLensSize,
+            Height = EyedropperLensSize,
+            ClipToBounds = true,
+            IsHitTestVisible = false
+        };
+        layer.Children.Add(image);
+        layer.Children.Add(new System.Windows.Shapes.Line
+        {
+            X1 = EyedropperLensSize / 2.0,
+            X2 = EyedropperLensSize / 2.0,
+            Y1 = 0,
+            Y2 = EyedropperLensSize,
+            Stroke = Brushes.White,
+            StrokeThickness = 1,
+            Opacity = 0.85,
+            IsHitTestVisible = false
+        });
+        layer.Children.Add(new System.Windows.Shapes.Line
+        {
+            X1 = 0,
+            X2 = EyedropperLensSize,
+            Y1 = EyedropperLensSize / 2.0,
+            Y2 = EyedropperLensSize / 2.0,
+            Stroke = Brushes.White,
+            StrokeThickness = 1,
+            Opacity = 0.85,
+            IsHitTestVisible = false
+        });
+
+        var border = new Border
+        {
+            Child = layer,
+            BorderBrush = Brushes.White,
+            BorderThickness = new Thickness(1),
+            Background = Brushes.Black,
+            CornerRadius = new CornerRadius(2),
+            IsHitTestVisible = false
+        };
+
+        _eyedropperMagnifierPopup = new System.Windows.Controls.Primitives.Popup
+        {
+            AllowsTransparency = true,
+            PlacementTarget = this,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.Relative,
+            StaysOpen = true,
+            IsHitTestVisible = false,
+            Child = border
+        };
+        _eyedropperMagnifierImage = image;
+    }
+
+    private void UpdateEyedropperMagnifier(Point posInPreview, Point posInWindow)
+    {
+        if (_eyedropperMagnifierPopup == null || _eyedropperMagnifierImage == null)
+            return;
+
+        if (ImgPreview.Source is not BitmapSource bmp)
+        {
+            HideEyedropperMagnifier();
+            return;
+        }
+
+        Rect imageRect = GetImageContentRect();
+        if (imageRect == Rect.Empty)
+        {
+            HideEyedropperMagnifier();
+            return;
+        }
+
+        Point posInCanvas = ImgPreview.TranslatePoint(posInPreview, OverlayCanvas);
+        if (!imageRect.Contains(posInCanvas))
+        {
+            HideEyedropperMagnifier();
+            return;
+        }
+
+        double relX = Math.Clamp((posInCanvas.X - imageRect.Left) / imageRect.Width, 0, 1);
+        double relY = Math.Clamp((posInCanvas.Y - imageRect.Top) / imageRect.Height, 0, 1);
+        int px = Math.Clamp((int)(relX * bmp.PixelWidth), 0, bmp.PixelWidth - 1);
+        int py = Math.Clamp((int)(relY * bmp.PixelHeight), 0, bmp.PixelHeight - 1);
+
+        int radius = EyedropperSampleSize / 2;
+        int x0 = Math.Max(0, px - radius);
+        int y0 = Math.Max(0, py - radius);
+        int x1 = Math.Min(bmp.PixelWidth - 1, px + radius);
+        int y1 = Math.Min(bmp.PixelHeight - 1, py + radius);
+        int sampleW = Math.Max(1, x1 - x0 + 1);
+        int sampleH = Math.Max(1, y1 - y0 + 1);
+
+        BitmapSource src = bmp.Format == PixelFormats.Bgra32
+            ? bmp
+            : new FormatConvertedBitmap(bmp, PixelFormats.Bgra32, null, 0);
+
+        _eyedropperMagnifierImage.Source = new CroppedBitmap(src, new Int32Rect(x0, y0, sampleW, sampleH));
+
+        double popupX = posInWindow.X + EyedropperLensOffset;
+        double popupY = posInWindow.Y + EyedropperLensOffset;
+
+        if (popupX + EyedropperLensSize + 8 > ActualWidth)
+            popupX = posInWindow.X - EyedropperLensSize - EyedropperLensOffset;
+        if (popupY + EyedropperLensSize + 8 > ActualHeight)
+            popupY = posInWindow.Y - EyedropperLensSize - EyedropperLensOffset;
+
+        popupX = Math.Clamp(popupX, 0, Math.Max(0, ActualWidth - EyedropperLensSize));
+        popupY = Math.Clamp(popupY, 0, Math.Max(0, ActualHeight - EyedropperLensSize));
+
+        _eyedropperMagnifierPopup.HorizontalOffset = popupX;
+        _eyedropperMagnifierPopup.VerticalOffset = popupY;
+        _eyedropperMagnifierPopup.IsOpen = true;
+    }
+
+    private void HideEyedropperMagnifier()
+    {
+        if (_eyedropperMagnifierPopup != null)
+            _eyedropperMagnifierPopup.IsOpen = false;
+
+        if (_eyedropperMagnifierImage != null)
+            _eyedropperMagnifierImage.Source = null;
     }
 
     /// <summary>
@@ -879,17 +1039,19 @@ public partial class MainWindow : Window
         Rect img = GetImageContentRect();
         if (img == Rect.Empty) return Colors.White;
 
-        // Map preview coords → [0,1] within the image content rect, then to real px
-        double relX = Math.Clamp((posInPreview.X - img.Left) / img.Width,  0, 1);
-        double relY = Math.Clamp((posInPreview.Y - img.Top)  / img.Height, 0, 1);
-        int px = Math.Clamp((int)(relX * bmp.PixelWidth),  0, bmp.PixelWidth  - 1);
+        Point posInCanvas = ImgPreview.TranslatePoint(posInPreview, OverlayCanvas);
+
+        // Map canvas coords -> [0,1] within the image content rect, then to real px
+        double relX = Math.Clamp((posInCanvas.X - img.Left) / img.Width, 0, 1);
+        double relY = Math.Clamp((posInCanvas.Y - img.Top) / img.Height, 0, 1);
+        int px = Math.Clamp((int)(relX * bmp.PixelWidth), 0, bmp.PixelWidth - 1);
         int py = Math.Clamp((int)(relY * bmp.PixelHeight), 0, bmp.PixelHeight - 1);
 
-        // Normalise to Bgra32 so the byte layout is always B G R A
+        // Normalize to Bgra32 so the byte layout is always B G R A
         var src = new FormatConvertedBitmap(bmp, PixelFormats.Bgra32, null, 0);
         byte[] pixel = new byte[4];
         src.CopyPixels(new Int32Rect(px, py, 1, 1), pixel, 4, 0);
-        return Color.FromRgb(pixel[2], pixel[1], pixel[0]);   // BGRA → RGB
+        return Color.FromRgb(pixel[2], pixel[1], pixel[0]);   // BGRA -> RGB
     }
 
     private static Color ParseSpectrumColor(string hex)
@@ -903,5 +1065,6 @@ public partial class MainWindow : Window
     private void ShowError(string message) =>
         MessageBox.Show(message, "Audio Visualizer – Error", MessageBoxButton.OK, MessageBoxImage.Error);
 }
+
 
 

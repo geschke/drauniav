@@ -1,0 +1,101 @@
+<Window x:Class="AudioVisualizer.VisualizerSettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Visualizer-Einstellungen"
+        Width="520"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="12">
+        <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0" Content="Preset:" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="CboPreset" Height="26"
+                      SelectionChanged="CboPreset_SelectionChanged"/>
+
+            <Label Grid.Row="1" Grid.Column="0" Content="Typ:" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" x:Name="CboType" Height="26"
+                      SelectionChanged="CboType_SelectionChanged">
+                <ComboBoxItem Content="showfreqs"/>
+                <ComboBoxItem Content="showwaves"/>
+            </ComboBox>
+
+            <Label Grid.Row="2" Grid.Column="0" Content="Mode:" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CboMode" Height="26"/>
+
+            <Label Grid.Row="3" Grid.Column="0" Content="Linienstärke:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="3" Grid.Column="1" x:Name="TxtLineThickness" Height="26"/>
+
+            <Label Grid.Row="4" Grid.Column="0" Content="Transparenz (0..1):" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtAlpha" Height="26"/>
+
+            <Label Grid.Row="5" Grid.Column="0" Content="Rate (fps):" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="5" Grid.Column="1" x:Name="TxtRate" Height="26"/>
+
+            <Label Grid.Row="6" Grid.Column="0" Content="Volume (dB):" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="6" Grid.Column="1" x:Name="TxtVolumeDb" Height="26"/>
+
+            <Label Grid.Row="7" Grid.Column="0" Content="AScale (showfreqs):" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="7" Grid.Column="1" x:Name="CboAScale" Height="26">
+                <ComboBoxItem Content="lin"/>
+                <ComboBoxItem Content="sqrt"/>
+                <ComboBoxItem Content="cbrt"/>
+                <ComboBoxItem Content="log"/>
+            </ComboBox>
+
+            <Label Grid.Row="8" Grid.Column="0" Content="Win Size (showfreqs):" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="8" Grid.Column="1" x:Name="TxtWinSize" Height="26"/>
+
+            <Label Grid.Row="9" Grid.Column="0" Content="FScale (showfreqs):" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="9" Grid.Column="1" x:Name="CboFScale" Height="26">
+                <ComboBoxItem Content="lin"/>
+                <ComboBoxItem Content="log"/>
+            </ComboBox>
+        </Grid>
+
+        <Separator Margin="0,0,0,10"/>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <CheckBox Grid.Row="0" Grid.ColumnSpan="2" x:Name="ChkUseColorKey"
+                      Content="Schwarzen Hintergrund per Colorkey entfernen"/>
+
+            <Label Grid.Row="1" Grid.Column="0" Content="Key Similarity:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" x:Name="TxtColorKeySimilarity" Height="26"/>
+
+            <Label Grid.Row="2" Grid.Column="0" Content="Key Blend:" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1" x:Name="TxtColorKeyBlend" Height="26"/>
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button Width="100" Height="26" Margin="0,0,8,0" Content="Abbrechen" Click="BtnCancel_Click"/>
+            <Button Width="100" Height="26" Content="Übernehmen" IsDefault="True" Click="BtnOk_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

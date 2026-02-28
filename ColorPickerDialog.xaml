@@ -9,7 +9,7 @@
     <StackPanel Margin="12">
 
         <!-- Eyedropper: sample a pixel directly from the background image -->
-        <Button x:Name="BtnEyedropper" Content="🔍  Aus Bild übernehmen"
+        <Button x:Name="BtnEyedropper" Content="Aus Bild übernehmen"
                 HorizontalAlignment="Left" Height="26" Padding="8,0"
                 Margin="0,0,0,10" Click="BtnEyedropper_Click"/>
 

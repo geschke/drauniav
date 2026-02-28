@@ -82,6 +82,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Row 0: Background Image -->
@@ -93,7 +94,7 @@
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" Content="Background:"/>
             <TextBox Grid.Column="1" x:Name="TxtImage" Margin="0,0,6,0" IsReadOnly="True"/>
-            <Button Grid.Column="2" Content="Browse…" Click="BrowseImage_Click"/>
+            <Button Grid.Column="2" Content="Browse..." Click="BrowseImage_Click"/>
         </Grid>
 
         <!-- Row 1: Audio File -->
@@ -105,7 +106,7 @@
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" Content="Audio (MP3):"/>
             <TextBox Grid.Column="1" x:Name="TxtAudio" Margin="0,0,6,0" IsReadOnly="True"/>
-            <Button Grid.Column="2" Content="Browse…" Click="BrowseAudio_Click"/>
+            <Button Grid.Column="2" Content="Browse..." Click="BrowseAudio_Click"/>
         </Grid>
 
         <!-- Row 2: Output File -->
@@ -117,27 +118,29 @@
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" Content="Output (MP4):"/>
             <TextBox Grid.Column="1" x:Name="TxtOutput" Margin="0,0,6,0" IsReadOnly="True"/>
-            <Button Grid.Column="2" Content="Browse…" Click="BrowseOutput_Click"/>
+            <Button Grid.Column="2" Content="Browse..." Click="BrowseOutput_Click"/>
         </Grid>
 
         <!-- Separator -->
         <Separator Grid.Row="3" VerticalAlignment="Center"/>
 
         <!-- Row 4: Options -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Left">
-            <Label Content="Color:" Width="48"/>
-            <Rectangle x:Name="RctColor" Width="26" Height="20" VerticalAlignment="Center"
-                       Fill="White" Stroke="#888888" StrokeThickness="1" Margin="0,0,6,0"/>
-            <Button Content="Farbe wählen…" Width="120" Height="26" VerticalAlignment="Center"
-                    Click="BtnPickColor_Click"/>
+        <StackPanel Grid.Row="4" Orientation="Vertical" HorizontalAlignment="Left">
+            <StackPanel Orientation="Horizontal">
+                <Label Content="Color:" Width="48"/>
+                <Rectangle x:Name="RctColor" Width="26" Height="20" VerticalAlignment="Center"
+                           Fill="White" Stroke="#888888" StrokeThickness="1" Margin="0,0,6,0"/>
+                <Button Content="Farbe wählen..." Width="120" Height="26" VerticalAlignment="Center"
+                        Click="BtnPickColor_Click"/>
+            </StackPanel>
 
-            <Label Content="Style:" Width="44" Margin="14,0,0,0"/>
-            <ComboBox x:Name="CboStyle" Width="80" Height="26" VerticalAlignment="Center" SelectedIndex="0">
-                <ComboBoxItem Content="Line"/>
-                <ComboBoxItem Content="Bars"/>
-            </ComboBox>
-
-            <!-- Position replaced by drag on preview bar -->
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Label Content="Visualizer:" Width="70"/>
+                <TextBlock x:Name="TxtVisualizerSummary" Width="210" VerticalAlignment="Center"
+                           TextWrapping="Wrap" Foreground="#666666" FontSize="11"/>
+                <Button Content="Visualizer-Einstellungen..." Width="170" Height="26" Margin="8,0,0,0"
+                        VerticalAlignment="Center" Click="BtnVisualizerSettings_Click"/>
+            </StackPanel>
         </StackPanel>
 
         <!-- Separator -->
@@ -147,13 +150,27 @@
         <Button Grid.Row="6" x:Name="BtnGenerate" Content="Generate" Width="110" Height="30"
                 HorizontalAlignment="Left" Click="Generate_Click"/>
 
-        <!-- Row 7: Play after export -->
-        <CheckBox Grid.Row="7" x:Name="ChkPlayAfterExport" Content="Nach dem Generieren abspielen"
+        <!-- Row 7: FFmpeg command preview -->
+        <TextBox Grid.Row="7" x:Name="TxtCommandPreview"
+                 Height="74"
+                 Margin="0,8,0,0"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto"
+                 HorizontalScrollBarVisibility="Auto"
+                 FontFamily="Consolas"
+                 FontSize="11"/>
+
+        <!-- Row 8: Play after export -->
+        <CheckBox Grid.Row="8" x:Name="ChkPlayAfterExport" Content="Nach dem Generieren abspielen"
                   Margin="0,8,0,0" HorizontalAlignment="Left"/>
 
-        <!-- Row 8: Progress bar -->
-        <ProgressBar Grid.Row="8" x:Name="Progress" Height="16" Margin="0,10,0,0"
+        <!-- Row 9: Progress bar -->
+        <ProgressBar Grid.Row="9" x:Name="Progress" Height="16" Margin="0,10,0,0"
                      IsIndeterminate="False" Value="0" Maximum="100"/>
         </Grid>
     </Grid>
 </Window>
+
+

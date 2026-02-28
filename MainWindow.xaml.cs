@@ -14,10 +14,11 @@ namespace AudioVisualizer;
 
 public partial class MainWindow : Window
 {
-    // ── Color state ───────────────────────────────────────────────────────────
+    // â”€â”€ Color state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private string _spectrumColor = "0xFFFFFF";   // FFmpeg 0xRRGGBB hex string
+    private VisualizerSettings _visualizerSettings = VisualizerSettings.CreateDefault();
 
-    // ── Drag state ────────────────────────────────────────────────────────────
+    // â”€â”€ Drag state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private const double MinOverlayWidthPreview = 40.0;
     private const double MinOverlayHeightPreview = 20.0;
     private const double SnapThresholdPreview = 10.0;
@@ -65,6 +66,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        UpdateVisualizerSummary();
+        UpdateCommandPreview();
         ImgPreview.SizeChanged         += (_, _) => UpdateOverlay();
         OverlayBar.MouseLeftButtonDown += OverlayBar_MouseDown;
         OverlayBar.MouseLeftButtonUp   += OverlayBar_MouseUp;
@@ -80,7 +83,7 @@ public partial class MainWindow : Window
         AttachHandle(HandleLeft, OverlayDragMode.ResizeLeft);
     }
 
-    // ── Browse handlers ──────────────────────────────────────────────────────
+    // â”€â”€ Browse handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private void BrowseImage_Click(object sender, RoutedEventArgs e)
     {
@@ -99,6 +102,7 @@ public partial class MainWindow : Window
             _snapCenterY = false;
             UpdateOverlay();
             UpdateImageInfo(dlg.FileName, bitmap);
+            UpdateCommandPreview();
         }
     }
 
@@ -110,7 +114,10 @@ public partial class MainWindow : Window
             Filter = "MP3 files (*.mp3)|*.mp3|All audio files (*.mp3;*.wav;*.aac)|*.mp3;*.wav;*.aac"
         };
         if (dlg.ShowDialog() == true)
+        {
             TxtAudio.Text = dlg.FileName;
+            UpdateCommandPreview();
+        }
     }
 
     private void BrowseOutput_Click(object sender, RoutedEventArgs e)
@@ -122,7 +129,10 @@ public partial class MainWindow : Window
             DefaultExt = ".mp4"
         };
         if (dlg.ShowDialog() == true)
+        {
             TxtOutput.Text = dlg.FileName;
+            UpdateCommandPreview();
+        }
     }
 
     private void UpdateImageInfo(string imagePath, BitmapSource bitmap)
@@ -177,7 +187,23 @@ public partial class MainWindow : Window
         };
     }
 
-    // ── Generate ─────────────────────────────────────────────────────────────
+    private void BtnVisualizerSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new VisualizerSettingsDialog(_visualizerSettings) { Owner = this };
+        if (dlg.ShowDialog() == true)
+        {
+            _visualizerSettings = dlg.SelectedSettings.Clone();
+            UpdateVisualizerSummary();
+            UpdateCommandPreview();
+        }
+    }
+
+    private void UpdateVisualizerSummary()
+    {
+        TxtVisualizerSummary.Text = _visualizerSettings.ToSummaryText();
+    }
+
+    // â”€â”€ Generate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async void Generate_Click(object sender, RoutedEventArgs e)
     {
@@ -201,11 +227,11 @@ public partial class MainWindow : Window
             }
 
             // Build filter options from UI
-            string color    = GetColor();
-            string drawMode = GetDrawMode();
-            string overlay  = BuildOverlayFilter(width, height, color, drawMode);
+            string color   = GetColor();
+            string overlay = BuildOverlayFilter(width, height, color, _visualizerSettings);
 
             string args = BuildFfmpegArgs(imagePath, audioPath, outputPath, width, height, overlay);
+            TxtCommandPreview.Text = $"{ffmpeg} {args}";
 
             string? error = await RunProcessAsync(ffmpeg, args);
             if (error != null)
@@ -243,7 +269,7 @@ public partial class MainWindow : Window
         }
     }
 
-    // ── Validation ────────────────────────────────────────────────────────────
+    // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private bool ValidateInputs(out string image, out string audio, out string output)
     {
@@ -263,7 +289,7 @@ public partial class MainWindow : Window
         return true;
     }
 
-    // ── Tool resolution ───────────────────────────────────────────────────────
+    // â”€â”€ Tool resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Returns the path to an FFmpeg tool, preferring the exe directory then PATH.</summary>
     private static string FindTool(string exeName)
@@ -277,7 +303,7 @@ public partial class MainWindow : Window
         return exeName;
     }
 
-    // ── ffprobe – image resolution ────────────────────────────────────────────
+    // â”€â”€ ffprobe â€“ image resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static async Task<(int width, int height)> GetImageResolutionAsync(string ffprobe, string imagePath)
     {
@@ -296,13 +322,34 @@ public partial class MainWindow : Window
         return (0, 0);
     }
 
-    // ── Filter / argument builders ────────────────────────────────────────────
+    // â”€â”€ Filter / argument builders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private string GetColor() => _spectrumColor;
 
-    private string GetDrawMode() => CboStyle.SelectedIndex == 1 ? "p2p" : "line";
+    private void UpdateCommandPreview()
+    {
+        if (TxtCommandPreview == null)
+            return;
 
-    private string BuildOverlayFilter(int imgWidth, int imgHeight, string color, string drawMode)
+        if (ImgPreview.Source is not BitmapSource bmp || bmp.PixelWidth <= 0 || bmp.PixelHeight <= 0)
+        {
+            TxtCommandPreview.Text = "FFmpeg command preview appears here after selecting a background image.";
+            return;
+        }
+
+        string ffmpeg = FindTool("ffmpeg.exe");
+        string imagePath = string.IsNullOrWhiteSpace(TxtImage.Text) ? "<image-file>" : TxtImage.Text.Trim();
+        string audioPath = string.IsNullOrWhiteSpace(TxtAudio.Text) ? "<audio-file>" : TxtAudio.Text.Trim();
+        string outputPath = string.IsNullOrWhiteSpace(TxtOutput.Text) ? "<output-file>" : TxtOutput.Text.Trim();
+
+        string color = GetColor();
+        string overlay = BuildOverlayFilter(bmp.PixelWidth, bmp.PixelHeight, color, _visualizerSettings);
+        string args = BuildFfmpegArgs(imagePath, audioPath, outputPath, bmp.PixelWidth, bmp.PixelHeight, overlay);
+
+        TxtCommandPreview.Text = $"{ffmpeg} {args}";
+    }
+
+    private string BuildOverlayFilter(int imgWidth, int imgHeight, string color, VisualizerSettings settings)
     {
         EnsureOverlayStateForImageSize(imgWidth, imgHeight);
 
@@ -311,16 +358,88 @@ public partial class MainWindow : Window
         int posX = Math.Clamp((int)Math.Round(_overlayX), 0, imgWidth - waveW);
         int posY = Math.Clamp((int)Math.Round(_overlayY), 0, imgHeight - waveH);
 
-        // showwaves filter: scale audio to overlay rectangle size and draw waveform
-        string showwaves =
-            $"showwaves=s={waveW}x{waveH}:mode={drawMode}:colors={color}:rate=25";
+        string filterType = settings.FilterType == "showwaves" ? "showwaves" : "showfreqs";
+        string mode = GetSafeMode(filterType, settings.Mode);
+        string ascale = GetSafeChoice(settings.AScale, "sqrt", "lin", "sqrt", "cbrt", "log");
+        string fscale = GetSafeChoice(settings.FScale, "log", "lin", "log");
 
-        // Overlay waveform on static image at selected rectangle position
-        string filter =
-            $"[1:a]{showwaves}[wave];" +
-            $"[0:v][wave]overlay={posX}:{posY}[v]";
+        int rate = Math.Clamp(settings.Rate, 1, 120);
+        int winSize = Math.Clamp(settings.WinSize, 32, 65536);
+        int thickness = Math.Clamp(settings.LineThickness, 1, 8);
+        double volumeDb = Math.Clamp(settings.VolumeDb, -96.0, 40.0);
+        double alpha = Math.Clamp(settings.Alpha, 0.05, 1.0);
+        double keySimilarity = Math.Clamp(settings.ColorKeySimilarity, 0.0, 1.0);
+        double keyBlend = Math.Clamp(settings.ColorKeyBlend, 0.0, 1.0);
 
-        return filter;
+        string volumeText = volumeDb.ToString("0.###", CultureInfo.InvariantCulture);
+        string alphaText = alpha.ToString("0.###", CultureInfo.InvariantCulture);
+        string keySimilarityText = keySimilarity.ToString("0.###", CultureInfo.InvariantCulture);
+        string keyBlendText = keyBlend.ToString("0.###", CultureInfo.InvariantCulture);
+
+        var filterParts = new List<string>();
+        string currentLabel = "viz0";
+        if (filterType == "showwaves")
+        {
+            filterParts.Add(
+                $"[1:a]volume={volumeText}dB,showwaves=s={waveW}x{waveH}:mode={mode}:rate={rate}:colors={color},format=rgba[{currentLabel}]");
+        }
+        else
+        {
+            filterParts.Add(
+                $"[1:a]volume={volumeText}dB,showfreqs=s={waveW}x{waveH}:mode={mode}:ascale={ascale}:win_size={winSize}:rate={rate}:fscale={fscale}:colors={color},format=rgba[{currentLabel}]");
+        }
+
+        if (settings.UseColorKey)
+        {
+            string nextLabel = "vizKey";
+            filterParts.Add(
+                $"[{currentLabel}]colorkey=0x000000:{keySimilarityText}:{keyBlendText}[{nextLabel}]");
+            currentLabel = nextLabel;
+        }
+
+        for (int i = 1; i < thickness; i++)
+        {
+            string nextLabel = $"vizDil{i}";
+            filterParts.Add($"[{currentLabel}]dilation[{nextLabel}]");
+            currentLabel = nextLabel;
+        }
+
+        if (settings.UseColorKey)
+        {
+            Color tint = ParseSpectrumColor(color);
+            string nextLabel = "vizTint";
+            filterParts.Add($"[{currentLabel}]lutrgb=r={tint.R}:g={tint.G}:b={tint.B}[{nextLabel}]");
+            currentLabel = nextLabel;
+        }
+
+        if (alpha < 0.999)
+        {
+            string nextLabel = "vizAlpha";
+            filterParts.Add($"[{currentLabel}]colorchannelmixer=aa={alphaText}[{nextLabel}]");
+            currentLabel = nextLabel;
+        }
+
+        filterParts.Add($"[0:v][{currentLabel}]overlay={posX}:{posY}:format=auto[v]");
+        return string.Join(";", filterParts);
+    }
+
+    private static string GetSafeMode(string filterType, string mode)
+    {
+        if (filterType == "showwaves")
+            return GetSafeChoice(mode, "line", "line", "p2p", "point");
+
+        return GetSafeChoice(mode, "line", "line", "bar", "dot");
+    }
+
+    private static string GetSafeChoice(string value, string fallback, params string[] allowed)
+    {
+        foreach (string candidate in allowed)
+        {
+            if (string.Equals(value, candidate, StringComparison.OrdinalIgnoreCase))
+                return candidate;
+        }
+
+        return fallback;
     }
 
     private static string BuildFfmpegArgs(
@@ -329,8 +448,8 @@ public partial class MainWindow : Window
         string filterComplex)
     {
         // -loop 1        : loop the still image
-        // -i image       : input 0 – background
-        // -i audio       : input 1 – audio (also drives showwaves)
+        // -i image       : input 0 â€“ background
+        // -i audio       : input 1 â€“ audio (also drives showwaves)
         // -filter_complex: combined filter graph
         // -map "[v]" not needed when filter ends with overlay (output is [0:v] after overlay)
         // -map 0:a       : passthrough audio
@@ -346,7 +465,7 @@ public partial class MainWindow : Window
                $"-c:v libx264 -c:a aac -pix_fmt yuv420p -shortest -y \"{output}\"";
     }
 
-    // ── Process helpers ────────────────────────────────────────────────────────
+    // â”€â”€ Process helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /// <summary>Runs a process and returns stderr on non-zero exit, null on success.</summary>
     private static Task<string?> RunProcessAsync(string exe, string args)
@@ -537,6 +656,7 @@ public partial class MainWindow : Window
         ApplyCenterSnap(ref previewRect, imageRect);
         UpdateOverlayFromPreviewRect(previewRect, imageRect, bmp);
         UpdateOverlay();
+        UpdateCommandPreview();
     }
 
     private static bool IsMoveArea(Point point, Rect rect)
@@ -821,7 +941,7 @@ public partial class MainWindow : Window
             rendH);
     }
 
-    // -- Color picker ──────────────────────────────────────────────────────────
+    // -- Color picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private async void BtnPickColor_Click(object sender, RoutedEventArgs e)
     {
@@ -843,6 +963,7 @@ public partial class MainWindow : Window
                 _spectrumColor = $"0x{c.R:X2}{c.G:X2}{c.B:X2}";
                 RctColor.Fill  = new SolidColorBrush(c);
                 UpdateOverlay();
+                UpdateCommandPreview();
                 break;
             }
             else
@@ -1063,8 +1184,11 @@ public partial class MainWindow : Window
     }
 
     private void ShowError(string message) =>
-        MessageBox.Show(message, "Audio Visualizer – Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        MessageBox.Show(message, "Audio Visualizer - Error", MessageBoxButton.OK, MessageBoxImage.Error);
 }
+
+
+
 
 
 

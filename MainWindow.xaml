@@ -1,0 +1,128 @@
+<Window x:Class="AudioVisualizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Audio Visualizer" Height="360" Width="920"
+        ResizeMode="CanResize" MinWidth="760" MinHeight="300"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Width" Value="90"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Height" Value="26"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Width" Value="70"/>
+            <Setter Property="Height" Value="26"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="560"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Right: image preview panel -->
+        <Border Grid.Column="1" Background="#404040" Margin="0,14,14,14">
+            <Grid>
+                <Image x:Name="ImgPreview" Stretch="Uniform"/>
+                <!-- Spectrum position overlay (Canvas lets us position children by pixel) -->
+                <Canvas x:Name="OverlayCanvas">
+                    <!-- decorative / non-interactive elements -->
+                    <Rectangle x:Name="CenterGuideLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                    <TextBlock  x:Name="CenterLabel" Text="· Mitte ·" FontSize="10"
+                                Foreground="White" Opacity="0.80" Visibility="Collapsed" IsHitTestVisible="False"/>
+                    <!-- draggable bar and its border lines -->
+                    <Rectangle x:Name="OverlayBar"        Visibility="Collapsed" Cursor="SizeNS"/>
+                    <Rectangle x:Name="OverlayTopLine"    Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                    <Rectangle x:Name="OverlayBottomLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
+                </Canvas>
+            </Grid>
+        </Border>
+
+        <!-- Left: existing controls -->
+        <Grid Grid.Column="0" Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="14"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="14"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: Background Image -->
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="76"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="Background:"/>
+            <TextBox Grid.Column="1" x:Name="TxtImage" Margin="0,0,6,0" IsReadOnly="True"/>
+            <Button Grid.Column="2" Content="Browse…" Click="BrowseImage_Click"/>
+        </Grid>
+
+        <!-- Row 1: Audio File -->
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="76"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="Audio (MP3):"/>
+            <TextBox Grid.Column="1" x:Name="TxtAudio" Margin="0,0,6,0" IsReadOnly="True"/>
+            <Button Grid.Column="2" Content="Browse…" Click="BrowseAudio_Click"/>
+        </Grid>
+
+        <!-- Row 2: Output File -->
+        <Grid Grid.Row="2" Margin="0,0,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="76"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="Output (MP4):"/>
+            <TextBox Grid.Column="1" x:Name="TxtOutput" Margin="0,0,6,0" IsReadOnly="True"/>
+            <Button Grid.Column="2" Content="Browse…" Click="BrowseOutput_Click"/>
+        </Grid>
+
+        <!-- Separator -->
+        <Separator Grid.Row="3" VerticalAlignment="Center"/>
+
+        <!-- Row 4: Options -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Left">
+            <Label Content="Color:" Width="48"/>
+            <Rectangle x:Name="RctColor" Width="26" Height="20" VerticalAlignment="Center"
+                       Fill="White" Stroke="#888888" StrokeThickness="1" Margin="0,0,6,0"/>
+            <Button Content="Farbe wählen…" Width="120" Height="26" VerticalAlignment="Center"
+                    Click="BtnPickColor_Click"/>
+
+            <Label Content="Style:" Width="44" Margin="14,0,0,0"/>
+            <ComboBox x:Name="CboStyle" Width="80" Height="26" VerticalAlignment="Center" SelectedIndex="0">
+                <ComboBoxItem Content="Line"/>
+                <ComboBoxItem Content="Bars"/>
+            </ComboBox>
+
+            <!-- Position replaced by drag on preview bar -->
+        </StackPanel>
+
+        <!-- Separator -->
+        <Separator Grid.Row="5" VerticalAlignment="Center"/>
+
+        <!-- Row 6: Generate button -->
+        <Button Grid.Row="6" x:Name="BtnGenerate" Content="Generate" Width="110" Height="30"
+                HorizontalAlignment="Left" Click="Generate_Click"/>
+
+        <!-- Row 7: Progress bar -->
+        <ProgressBar Grid.Row="7" x:Name="Progress" Height="16" Margin="0,10,0,0"
+                     IsIndeterminate="False" Value="0" Maximum="100"/>
+        </Grid>
+    </Grid>
+</Window>

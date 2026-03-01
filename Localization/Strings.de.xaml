@@ -31,7 +31,7 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogSaveOutputTitle">Ausgabevideo speichern</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogFilterOutput">MP4-Video (*.mp4)|*.mp4</sys:String>
 
-    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ImageInfoTemplate">Bild: {0} × {1} px   Verhältnis: {2}   Größe: {3} MB   Format: {4}</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ImageInfoTemplate">Bild: {0} x {1} px   Verhältnis: {2}   Größe: {3} MB   Format: {4}</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ImageFormatUnknown">Unbekannt</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VisualizerSummaryTemplate">{0} | {1}:{2} | {3} fps | {4} Alpha</sys:String>
 
@@ -72,10 +72,15 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutVersionLabel">Version:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutAuthorLabel">Autor:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutHomepageLabel">Homepage:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutEmailLabel">E-Mail:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutGithubLabel">GitHub:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutLicenseLabel">Lizenz:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutClose">Schließen</sys:String>
-    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutAuthorValue">Ralf</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutAuthorValue">Ralf Geschke</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutHomepageValue">(wird ergänzt)</sys:String>
-    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutGithubValue">(wird ergänzt)</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutEmailValue">ralf@kuerbis.org</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutGithubValue">https://github.com/geschke/drauniav</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutLicenseValue">MIT</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutDescription">Drauniav ist eine GUI für FFmpeg und erzeugt aus Bild und Musik ein Video mit Audio-Visualizer-Overlay.</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutVersionValueTemplate">Version {0}</sys:String>
 </ResourceDictionary>

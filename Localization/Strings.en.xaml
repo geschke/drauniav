@@ -31,7 +31,7 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogSaveOutputTitle">Save output video</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DialogFilterOutput">MP4 video (*.mp4)|*.mp4</sys:String>
 
-    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ImageInfoTemplate">Image: {0} × {1} px   Aspect: {2}   Size: {3} MB   Format: {4}</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ImageInfoTemplate">Image: {0} x {1} px   Aspect: {2}   Size: {3} MB   Format: {4}</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ImageFormatUnknown">Unknown</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VisualizerSummaryTemplate">{0} | {1}:{2} | {3} fps | {4} alpha</sys:String>
 
@@ -72,10 +72,15 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutVersionLabel">Version:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutAuthorLabel">Author:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutHomepageLabel">Homepage:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutEmailLabel">Email:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutGithubLabel">GitHub:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutLicenseLabel">License:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutClose">Close</sys:String>
-    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutAuthorValue">Ralf</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutAuthorValue">Ralf Geschke</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutHomepageValue">(to be added)</sys:String>
-    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutGithubValue">(to be added)</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutEmailValue">ralf@kuerbis.org</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutGithubValue">https://github.com/geschke/drauniav</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutLicenseValue">MIT</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutDescription">Drauniav is a GUI for FFmpeg to create videos from an image and music with an audio visualizer overlay.</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutVersionValueTemplate">Version {0}</sys:String>
 </ResourceDictionary>

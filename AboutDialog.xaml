@@ -34,19 +34,30 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="{DynamicResource AboutVersionLabel}" Margin="0,0,8,8" Foreground="#374151"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" x:Name="TxtVersionValue" Margin="0,0,0,8" Foreground="#111827"/>
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,10" Text="{DynamicResource AboutDescription}" Foreground="#4B5563" TextWrapping="Wrap"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource AboutAuthorLabel}" Margin="0,0,8,8" Foreground="#374151"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="TxtAuthorValue" Margin="0,0,0,8" Foreground="#111827"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource AboutVersionLabel}" Margin="0,0,8,8" Foreground="#374151"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" x:Name="TxtVersionValue" Margin="0,0,0,8" Foreground="#111827"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource AboutHomepageLabel}" Margin="0,0,8,8" Foreground="#374151"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TxtHomepageValue" Margin="0,0,0,8" Foreground="#111827"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{DynamicResource AboutAuthorLabel}" Margin="0,0,8,8" Foreground="#374151"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" x:Name="TxtAuthorValue" Margin="0,0,0,8" Foreground="#111827"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource AboutGithubLabel}" Margin="0,0,8,0" Foreground="#374151"/>
-                <TextBlock Grid.Row="3" Grid.Column="1" x:Name="TxtGithubValue" Foreground="#111827"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource AboutEmailLabel}" Margin="0,0,8,8" Foreground="#374151"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" x:Name="TxtEmailValue" Margin="0,0,0,8" Foreground="#111827"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="{DynamicResource AboutGithubLabel}" Margin="0,0,8,8" Foreground="#374151"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,0,0,8" Foreground="#1D4ED8">
+                    <Hyperlink x:Name="LnkGithub" RequestNavigate="LnkGithub_RequestNavigate">
+                        <Run x:Name="TxtGithubValue"/>
+                    </Hyperlink>
+                </TextBlock>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="{DynamicResource AboutLicenseLabel}" Margin="0,0,8,0" Foreground="#374151"/>
+                <TextBlock Grid.Row="5" Grid.Column="1" x:Name="TxtLicenseValue" Foreground="#111827"/>
             </Grid>
         </Border>
 

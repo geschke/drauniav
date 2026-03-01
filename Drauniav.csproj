@@ -10,6 +10,7 @@
     <Platforms>x64</Platforms>
     <AssemblyName>Drauniav</AssemblyName>
     <RootNamespace>Drauniav</RootNamespace>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

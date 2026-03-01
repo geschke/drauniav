@@ -45,6 +45,15 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="GenerateSuccessTitle">Drauniav</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="GenerateSuccessMessage">Fertig! Video gespeichert unter:{0}{1}</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ErrorTitle">Drauniav - Fehler</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingTitle">FFmpeg fehlt</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingHeader">FFmpeg wurde nicht gefunden</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingIntro">Drauniav ist eine GUI für FFmpeg zur Video-Generierung aus Bild und Musik mit Audio-Visualizer-Overlay.</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingInstallHint">Eine einfache Installation ist über Winget möglich. Alternativ können ffmpeg.exe und ffprobe.exe direkt neben Drauniav.exe abgelegt werden.</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingWingetLabel">Installation:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingWingetCommand">winget install FFmpeg</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingHomepageLabel">Homepage:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingHomepageUrl">https://ffmpeg.org/</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="FfmpegMissingClose">OK</sys:String>
 
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ColorPickerTitle">Farbe wählen</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ColorPickerEyedropper">Aus Bild übernehmen</sys:String>

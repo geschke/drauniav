@@ -3,7 +3,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 
-namespace AudioVisualizer;
+namespace Drauniav;
 
 public enum AppLanguage
 {
@@ -84,7 +84,7 @@ public static class LocalizationManager
     {
         string dir = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AudioVisualizer");
+            "Drauniav");
         return Path.Combine(dir, PreferencesFileName);
     }
 

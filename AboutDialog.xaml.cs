@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace AudioVisualizer;
+namespace Drauniav;
 
 public partial class AboutDialog : Window
 {

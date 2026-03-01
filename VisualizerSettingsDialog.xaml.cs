@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace AudioVisualizer;
+namespace Drauniav;
 
 public partial class VisualizerSettingsDialog : Window
 {

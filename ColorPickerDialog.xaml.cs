@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media;
 
-namespace AudioVisualizer;
+namespace Drauniav;
 
 public partial class ColorPickerDialog : Window
 {

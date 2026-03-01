@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace AudioVisualizer;
+namespace Drauniav;
 
 public sealed class VisualizerSettings
 {

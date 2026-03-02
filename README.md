@@ -27,6 +27,45 @@ No installation is required. Simply extract the archive into any directory and r
 
 If you want to remove it, just delete the folder.
 
+
+## Quick Start
+
+1. Download the portable package.
+2. Extract it into a folder of your choice.
+3. Run `Drauniav.exe`.
+4. Select an image and an audio file.
+5. Adjust the visualization and settings if desired.
+6. Click **Generate**.
+
+That’s it.
+
+
+## Windows Security Notice
+
+Since Drauniav is currently distributed without a digital code-signing certificate, Windows may display a security warning when you start the application for the first time.
+
+You might see a message similar to:
+
+“Windows protected your PC”
+
+This is normal for new or unsigned applications that do not yet have an established reputation with Microsoft SmartScreen.
+
+To run the application:
+
+1. Click “More info”
+2. Click “Run anyway”
+
+Drauniav is fully open source, and the complete code is available in this repository. The application performs no network communication and runs entirely locally.
+
+
+## Security and Transparency
+
+Drauniav does not send any data over the network, does not perform telemetry, and does not modify the Windows system outside of its own working directory.
+
+The program simply constructs an FFmpeg command based on user-selected options and executes it locally.
+
+You can review the full source code in this repository at any time or build the application yourself.
+
 ## Requirements
 
 Drauniav relies on **FFmpeg** for video generation.
@@ -41,14 +80,20 @@ winget install FFmpeg
 
 After installation, Drauniav should detect FFmpeg automatically.
 
+## Screenshots
 
-## Quick Start
+Example interface:
 
-1. Download the portable package.
-2. Extract it into a folder of your choice.
-3. Run `Drauniav.exe`.
-4. Select an image and an audio file.
-5. Adjust the visualization and settings if desired.
-6. Click **Generate**.
+![Screenshot](Assets/drauniav_screenshot.png)
 
-That’s it.
+
+## Integrity Verification (Optional)
+
+You can verify the integrity of the downloaded archive using a SHA-256 checksum provided in the release notes.
+
+On Windows PowerShell:
+
+```powershell
+Get-FileHash .\Drauniav.zip -Algorithm SHA256
+```
+

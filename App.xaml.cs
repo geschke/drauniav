@@ -1,5 +1,7 @@
 using System.Windows;
 using System.IO;
+using System.Windows.Media.Imaging;
+using System.Linq;
 
 namespace Drauniav;
 
@@ -20,6 +22,7 @@ public partial class App : Application
         bool showMissingFfmpegDialog = simulateMissingFfmpeg || !ffmpegAvailable || !ffprobeAvailable;
 
         var mainWindow = new MainWindow();
+        TryApplyWindowIcon(mainWindow);
         MainWindow = mainWindow;
         if (showMissingFfmpegDialog)
         {
@@ -34,6 +37,29 @@ public partial class App : Application
         }
 
         mainWindow.Show();
+    }
+
+    private static void TryApplyWindowIcon(Window window)
+    {
+        string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Drauniav.ico");
+        if (!File.Exists(iconPath))
+            return;
+
+        using var stream = File.OpenRead(iconPath);
+        var decoder = new IconBitmapDecoder(
+            stream,
+            BitmapCreateOptions.PreservePixelFormat,
+            BitmapCacheOption.OnLoad);
+
+        BitmapFrame? bestFrame = decoder.Frames
+            .OrderByDescending(f => f.PixelWidth * f.PixelHeight)
+            .FirstOrDefault();
+
+        if (bestFrame is null)
+            return;
+
+        bestFrame.Freeze();
+        window.Icon = bestFrame;
     }
 
     private static bool IsToolAvailable(string exeName)

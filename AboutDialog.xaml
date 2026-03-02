@@ -17,10 +17,19 @@
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="White" BorderBrush="#D4D8DF" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
-                <iconPacks:PackIconMaterial Kind="InformationOutline" Width="18" Height="18" Margin="0,0,8,0" Foreground="#374151"/>
-                <TextBlock Text="{DynamicResource AboutHeader}" FontSize="14" FontWeight="SemiBold" Foreground="#111827"/>
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Grid Grid.Column="0" Width="40" Height="40" Margin="0,0,10,0">
+                    <Image x:Name="AboutLogoImage" Stretch="Uniform" Visibility="Collapsed"/>
+                    <iconPacks:PackIconMaterial x:Name="AboutHeaderIcon" Kind="InformationOutline" Width="18" Height="18" Foreground="#374151" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+
+                <TextBlock Grid.Column="1" Text="{DynamicResource AboutHeader}" VerticalAlignment="Center" FontSize="14" FontWeight="SemiBold" Foreground="#111827"/>
+            </Grid>
         </Border>
 
         <Border Grid.Row="1" Background="White" BorderBrush="#D4D8DF" BorderThickness="1" CornerRadius="8" Padding="12">

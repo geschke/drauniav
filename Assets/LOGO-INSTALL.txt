@@ -1,0 +1,15 @@
+Place your logo image here using one of these file names:
+
+- Drauniav-logo.png
+- Drauniav-logo.jpg
+- Drauniav-logo.jpeg
+
+Then run:
+
+dotnet build -c Release
+
+During build, the project automatically generates:
+
+- Assets\Drauniav.ico
+
+That icon is then used as the application icon.

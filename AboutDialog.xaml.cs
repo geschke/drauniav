@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
+using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 
 namespace Drauniav;
@@ -23,6 +25,8 @@ public partial class AboutDialog : Window
         TxtGithubValue.Text = _githubUrl;
         if (Uri.TryCreate(_githubUrl, UriKind.Absolute, out Uri? githubUri))
             LnkGithub.NavigateUri = githubUri;
+
+        LoadAboutLogo();
     }
 
     private void LnkGithub_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -35,4 +39,32 @@ public partial class AboutDialog : Window
     }
 
     private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void LoadAboutLogo()
+    {
+        string[] candidates =
+        {
+            Path.Combine(AppContext.BaseDirectory, "Assets", "Drauniav-logo.png"),
+            Path.Combine(AppContext.BaseDirectory, "Assets", "Drauniav-logo.jpg"),
+            Path.Combine(AppContext.BaseDirectory, "Assets", "Drauniav-logo.jpeg")
+        };
+
+        foreach (string candidate in candidates)
+        {
+            if (!File.Exists(candidate))
+                continue;
+
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(candidate, UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            AboutLogoImage.Source = bitmap;
+            AboutLogoImage.Visibility = Visibility.Visible;
+            AboutHeaderIcon.Visibility = Visibility.Collapsed;
+            return;
+        }
+    }
 }

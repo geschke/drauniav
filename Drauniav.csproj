@@ -11,11 +11,46 @@
     <AssemblyName>Drauniav</AssemblyName>
     <RootNamespace>Drauniav</RootNamespace>
     <Version>0.1.0</Version>
+    <GeneratedAppIcon>Assets\Drauniav.ico</GeneratedAppIcon>
+    <ApplicationIcon Condition="Exists('$(MSBuildProjectDirectory)\$(GeneratedAppIcon)')">$(GeneratedAppIcon)</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AppLogoImage></AppLogoImage>
+    <AppLogoImage Condition="'$(AppLogoImage)' == '' and Exists('$(MSBuildProjectDirectory)\Assets\Drauniav-logo.png')">Assets\Drauniav-logo.png</AppLogoImage>
+    <AppLogoImage Condition="'$(AppLogoImage)' == '' and Exists('$(MSBuildProjectDirectory)\Assets\Drauniav-logo.jpg')">Assets\Drauniav-logo.jpg</AppLogoImage>
+    <AppLogoImage Condition="'$(AppLogoImage)' == '' and Exists('$(MSBuildProjectDirectory)\Assets\Drauniav-logo.jpeg')">Assets\Drauniav-logo.jpeg</AppLogoImage>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.2" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="5.0.0" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(AppLogoImage)' != ''">
+    <Content Include="$(AppLogoImage)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>Assets\%(Filename)%(Extension)</TargetPath>
+    </Content>
+    <Content Include="$(GeneratedAppIcon)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>Assets\%(Filename)%(Extension)</TargetPath>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="GenerateAppIconFromLogo"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(OS)' == 'Windows_NT' and '$(AppLogoImage)' != ''">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\tools\Generate-AppIcon.ps1&quot; -InputImage &quot;$(MSBuildProjectDirectory)\$(AppLogoImage)&quot; -OutputIco &quot;$(MSBuildProjectDirectory)\$(GeneratedAppIcon)&quot;" />
+  </Target>
+
+  <Target Name="CopyGeneratedAppIconToOutput"
+          AfterTargets="Build"
+          Condition="'$(OS)' == 'Windows_NT' and Exists('$(MSBuildProjectDirectory)\$(GeneratedAppIcon)')">
+    <MakeDir Directories="$(TargetDir)Assets" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\$(GeneratedAppIcon)"
+          DestinationFiles="$(TargetDir)Assets\Drauniav.ico"
+          SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>

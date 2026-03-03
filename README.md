@@ -96,4 +96,3 @@ On Windows PowerShell:
 ```powershell
 Get-FileHash .\Drauniav.zip -Algorithm SHA256
 ```
-

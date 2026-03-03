@@ -17,6 +17,8 @@ public partial class MainWindow : Window
     // â”€â”€ Color state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private string _spectrumColor = "0xFFFFFF";   // FFmpeg 0xRRGGBB hex string
     private VisualizerSettings _visualizerSettings = VisualizerSettings.CreateDefault();
+    private VideoOutputSettings _videoOutputSettings = VideoOutputSettings.CreateDefault();
+    private BitmapSource? _sourceImageBitmap;
 
     // â”€â”€ Drag state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     private const double MinOverlayWidthPreview = 40.0;
@@ -33,7 +35,7 @@ public partial class MainWindow : Window
     private bool _snapCenterX;
     private bool _snapCenterY;
 
-    // Stored in real image pixels for direct FFmpeg usage.
+    // Stored in output video pixels for direct FFmpeg usage.
     private double _overlayX;
     private double _overlayY;
     private double _overlayWidth;
@@ -69,6 +71,7 @@ public partial class MainWindow : Window
         LocalizationManager.LanguageChanged += LocalizationManager_LanguageChanged;
         UpdateLanguageMenuChecks();
         UpdateVisualizerSummary();
+        UpdateVideoSummary();
         UpdateCommandPreview();
         ImgPreview.SizeChanged         += (_, _) => UpdateOverlay();
         OverlayBar.MouseLeftButtonDown += OverlayBar_MouseDown;
@@ -127,9 +130,10 @@ public partial class MainWindow : Window
     private void RefreshLocalizedRuntimeTexts()
     {
         UpdateVisualizerSummary();
+        UpdateVideoSummary();
 
-        if (ImgPreview.Source is BitmapSource bmp && File.Exists(TxtImage.Text))
-            UpdateImageInfo(TxtImage.Text, bmp);
+        if (_sourceImageBitmap != null && File.Exists(TxtImage.Text))
+            UpdateImageInfo(TxtImage.Text, _sourceImageBitmap);
 
         UpdateCommandPreview();
     }
@@ -146,13 +150,25 @@ public partial class MainWindow : Window
         if (dlg.ShowDialog() == true)
         {
             TxtImage.Text = dlg.FileName;
-            var bitmap = new BitmapImage(new Uri(dlg.FileName));
-            ImgPreview.Source = bitmap;
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.UriSource = new Uri(dlg.FileName, UriKind.Absolute);
+            bitmap.EndInit();
+            bitmap.Freeze();
+
+            _sourceImageBitmap = bitmap;
+
+            if (_videoOutputSettings.UseImageResolution)
+                _videoOutputSettings.ResetToImage(bitmap.PixelWidth, bitmap.PixelHeight);
+
+            ApplyPreviewAspect();
             _overlayInitialized = false;
             _snapCenterX = false;
             _snapCenterY = false;
             UpdateOverlay();
             UpdateImageInfo(dlg.FileName, bitmap);
+            UpdateVideoSummary();
             UpdateCommandPreview();
         }
     }
@@ -190,7 +206,7 @@ public partial class MainWindow : Window
     {
         int width = bitmap.PixelWidth;
         int height = bitmap.PixelHeight;
-        string aspect = BuildAspectRatioLabel(width, height);
+        string aspect = GetVideoAspectSummaryLabel(width, height);
         double sizeInMb = new FileInfo(imagePath).Length / (1024d * 1024d);
         string format = GetImageFormatLabel(imagePath);
 
@@ -255,6 +271,40 @@ public partial class MainWindow : Window
         }
     }
 
+    private void BtnVideoOptions_Click(object sender, RoutedEventArgs e)
+    {
+        if (_sourceImageBitmap == null)
+        {
+            MessageBox.Show(
+                Loc.Get("ValidationBackground"),
+                Loc.Get("ValidationTitle"),
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return;
+        }
+
+        var settingsForDialog = _videoOutputSettings.Clone();
+        if (settingsForDialog.UseImageResolution)
+            settingsForDialog.ResetToImage(_sourceImageBitmap.PixelWidth, _sourceImageBitmap.PixelHeight);
+
+        var dlg = new VideoOptionsDialog(_sourceImageBitmap.PixelWidth, _sourceImageBitmap.PixelHeight, settingsForDialog)
+        {
+            Owner = this
+        };
+
+        if (dlg.ShowDialog() != true)
+            return;
+
+        TryGetEffectiveOutputResolution(out int oldWidth, out int oldHeight);
+        _videoOutputSettings = dlg.SelectedOptions.Clone();
+        ApplyPreviewAspect();
+        TryGetEffectiveOutputResolution(out int newWidth, out int newHeight);
+        ScaleOverlayToNewResolution(oldWidth, oldHeight, newWidth, newHeight);
+        UpdateOverlay();
+        UpdateVideoSummary();
+        UpdateCommandPreview();
+    }
+
     private void UpdateVisualizerSummary()
     {
         string alphaText = $"{Math.Round(_visualizerSettings.Alpha * 100):0}%";
@@ -266,6 +316,121 @@ public partial class MainWindow : Window
             _visualizerSettings.Mode,
             _visualizerSettings.Rate,
             alphaText);
+    }
+
+    private void UpdateVideoSummary()
+    {
+        if (TxtVideoSummary == null)
+            return;
+
+        if (!TryGetEffectiveOutputResolution(out int width, out int height))
+        {
+            TxtVideoSummary.Text = Loc.Get("VideoSummaryPlaceholder");
+            return;
+        }
+
+        string aspect = GetVideoAspectSummaryLabel(width, height);
+        string sourceMode = _videoOutputSettings.UseImageResolution
+            ? Loc.Get("VideoSummarySourceImage")
+            : Loc.Get("VideoSummarySourceCustom");
+
+        TxtVideoSummary.Text = string.Format(
+            CultureInfo.CurrentCulture,
+            Loc.Get("VideoSummaryTemplate"),
+            width,
+            height,
+            aspect,
+            sourceMode);
+    }
+
+    private bool TryGetEffectiveOutputResolution(out int width, out int height)
+    {
+        width = 0;
+        height = 0;
+
+        if (_sourceImageBitmap == null)
+            return false;
+
+        if (_videoOutputSettings.UseImageResolution
+            || _videoOutputSettings.Width <= 0
+            || _videoOutputSettings.Height <= 0)
+        {
+            width = _sourceImageBitmap.PixelWidth;
+            height = _sourceImageBitmap.PixelHeight;
+            NormalizeEncodingResolution(ref width, ref height);
+            return true;
+        }
+
+        width = _videoOutputSettings.Width;
+        height = _videoOutputSettings.Height;
+        NormalizeEncodingResolution(ref width, ref height);
+        return true;
+    }
+
+    private static void NormalizeEncodingResolution(ref int width, ref int height)
+    {
+        width = NormalizeEvenDimension(width);
+        height = NormalizeEvenDimension(height);
+    }
+
+    private static int NormalizeEvenDimension(int value)
+    {
+        value = Math.Max(2, value);
+        return (value % 2 == 0) ? value : value - 1;
+    }
+
+    private string GetVideoAspectSummaryLabel(int width, int height)
+    {
+        if (_videoOutputSettings.KeepAspectRatio
+            && _videoOutputSettings.LockedAspectNumerator > 0
+            && _videoOutputSettings.LockedAspectDenominator > 0)
+        {
+            return $"{_videoOutputSettings.LockedAspectNumerator}:{_videoOutputSettings.LockedAspectDenominator}";
+        }
+
+        return BuildAspectRatioLabel(width, height);
+    }
+
+    private void ApplyPreviewAspect()
+    {
+        if (_sourceImageBitmap == null)
+        {
+            ImgPreview.Source = null;
+            return;
+        }
+
+        if (!TryGetEffectiveOutputResolution(out int targetWidth, out int targetHeight))
+        {
+            ImgPreview.Source = _sourceImageBitmap;
+            return;
+        }
+
+        double sourceAspect = (double)_sourceImageBitmap.PixelWidth / _sourceImageBitmap.PixelHeight;
+        double targetAspect = (double)targetWidth / targetHeight;
+
+        if (Math.Abs(sourceAspect - targetAspect) < 0.0001)
+        {
+            ImgPreview.Source = _sourceImageBitmap;
+            return;
+        }
+
+        var transform = new ScaleTransform(targetAspect / sourceAspect, 1.0);
+        var transformed = new TransformedBitmap(_sourceImageBitmap, transform);
+        transformed.Freeze();
+        ImgPreview.Source = transformed;
+    }
+
+    private void ScaleOverlayToNewResolution(int oldWidth, int oldHeight, int newWidth, int newHeight)
+    {
+        if (!_overlayInitialized || oldWidth <= 0 || oldHeight <= 0 || newWidth <= 0 || newHeight <= 0)
+            return;
+
+        double scaleX = (double)newWidth / oldWidth;
+        double scaleY = (double)newHeight / oldHeight;
+        _overlayX *= scaleX;
+        _overlayY *= scaleY;
+        _overlayWidth *= scaleX;
+        _overlayHeight *= scaleY;
     }
 
     // â”€â”€ Generate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -291,16 +456,30 @@ public partial class MainWindow : Window
                 return;
             }
 
+            int outputWidth;
+            int outputHeight;
+            if (_videoOutputSettings.UseImageResolution)
+            {
+                outputWidth = width;
+                outputHeight = height;
+            }
+            else if (!TryGetEffectiveOutputResolution(out outputWidth, out outputHeight))
+            {
+                outputWidth = width;
+                outputHeight = height;
+            }
+
             // Build filter options from UI
             string color   = GetColor();
-            string overlay = BuildOverlayFilter(width, height, color, _visualizerSettings);
+            string overlay = BuildOverlayFilter(outputWidth, outputHeight, color, _visualizerSettings);
 
-            string args = BuildFfmpegArgs(imagePath, audioPath, outputPath, width, height, overlay);
+            string args = BuildFfmpegArgs(imagePath, audioPath, outputPath, outputWidth, outputHeight, overlay);
             TxtCommandPreview.Text = $"{ffmpeg} {args}";
 
             string? error = await RunProcessAsync(ffmpeg, args);
             if (error != null)
             {
+                TxtCommandPreview.Text = $"{ffmpeg} {args}{Environment.NewLine}{Environment.NewLine}FFmpeg error:{Environment.NewLine}{error}";
                 ShowError(string.Format(CultureInfo.CurrentCulture, Loc.Get("ErrorFfmpegTemplate"), Environment.NewLine, error));
                 return;
             }
@@ -399,7 +578,7 @@ public partial class MainWindow : Window
         if (TxtCommandPreview == null)
             return;
 
-        if (ImgPreview.Source is not BitmapSource bmp || bmp.PixelWidth <= 0 || bmp.PixelHeight <= 0)
+        if (_sourceImageBitmap == null || _sourceImageBitmap.PixelWidth <= 0 || _sourceImageBitmap.PixelHeight <= 0)
         {
             TxtCommandPreview.Text = Loc.Get("PlaceholderCommandPreview");
             return;
@@ -410,9 +589,15 @@ public partial class MainWindow : Window
         string audioPath = string.IsNullOrWhiteSpace(TxtAudio.Text) ? "<audio-file>" : TxtAudio.Text.Trim();
         string outputPath = string.IsNullOrWhiteSpace(TxtOutput.Text) ? "<output-file>" : TxtOutput.Text.Trim();
 
+        if (!TryGetEffectiveOutputResolution(out int outputWidth, out int outputHeight))
+        {
+            TxtCommandPreview.Text = Loc.Get("PlaceholderCommandPreview");
+            return;
+        }
+
         string color = GetColor();
-        string overlay = BuildOverlayFilter(bmp.PixelWidth, bmp.PixelHeight, color, _visualizerSettings);
-        string args = BuildFfmpegArgs(imagePath, audioPath, outputPath, bmp.PixelWidth, bmp.PixelHeight, overlay);
+        string overlay = BuildOverlayFilter(outputWidth, outputHeight, color, _visualizerSettings);
+        string args = BuildFfmpegArgs(imagePath, audioPath, outputPath, outputWidth, outputHeight, overlay);
 
         TxtCommandPreview.Text = $"{ffmpeg} {args}";
     }
@@ -445,6 +630,8 @@ public partial class MainWindow : Window
         string keyBlendText = keyBlend.ToString("0.###", CultureInfo.InvariantCulture);
 
         var filterParts = new List<string>();
+        filterParts.Add($"[0:v]scale={imgWidth}:{imgHeight}:flags=lanczos,format=rgba[bg]");
+
         string currentLabel = "viz0";
         if (filterType == "showwaves")
         {
@@ -487,7 +674,7 @@ public partial class MainWindow : Window
             currentLabel = nextLabel;
         }
 
-        filterParts.Add($"[0:v][{currentLabel}]overlay={posX}:{posY}:format=auto[v]");
+        filterParts.Add($"[bg][{currentLabel}]overlay={posX}:{posY}:format=auto[v]");
         return string.Join(";", filterParts);
     }
 
@@ -819,7 +1006,10 @@ public partial class MainWindow : Window
 
     private void EnsureOverlayStateForBitmap(BitmapSource bmp)
     {
-        EnsureOverlayStateForImageSize(bmp.PixelWidth, bmp.PixelHeight);
+        if (TryGetEffectiveOutputResolution(out int width, out int height))
+            EnsureOverlayStateForImageSize(width, height);
+        else
+            EnsureOverlayStateForImageSize(bmp.PixelWidth, bmp.PixelHeight);
     }
 
     private void EnsureOverlayStateForImageSize(int imageWidth, int imageHeight)
@@ -841,8 +1031,16 @@ public partial class MainWindow : Window
 
     private Rect GetOverlayPreviewRect(Rect imageRect, BitmapSource bmp)
     {
-        double scaleX = imageRect.Width / bmp.PixelWidth;
-        double scaleY = imageRect.Height / bmp.PixelHeight;
+        int basisWidth = bmp.PixelWidth;
+        int basisHeight = bmp.PixelHeight;
+        if (TryGetEffectiveOutputResolution(out int width, out int height))
+        {
+            basisWidth = width;
+            basisHeight = height;
+        }
+
+        double scaleX = imageRect.Width / basisWidth;
+        double scaleY = imageRect.Height / basisHeight;
 
         return new Rect(
             imageRect.Left + (_overlayX * scaleX),
@@ -853,15 +1051,23 @@ public partial class MainWindow : Window
 
     private void UpdateOverlayFromPreviewRect(Rect previewRect, Rect imageRect, BitmapSource bmp)
     {
-        double scaleX = bmp.PixelWidth / imageRect.Width;
-        double scaleY = bmp.PixelHeight / imageRect.Height;
+        int basisWidth = bmp.PixelWidth;
+        int basisHeight = bmp.PixelHeight;
+        if (TryGetEffectiveOutputResolution(out int width, out int height))
+        {
+            basisWidth = width;
+            basisHeight = height;
+        }
+
+        double scaleX = basisWidth / imageRect.Width;
+        double scaleY = basisHeight / imageRect.Height;
 
         _overlayX = (previewRect.Left - imageRect.Left) * scaleX;
         _overlayY = (previewRect.Top - imageRect.Top) * scaleY;
         _overlayWidth = previewRect.Width * scaleX;
         _overlayHeight = previewRect.Height * scaleY;
 
-        EnsureOverlayStateForImageSize(bmp.PixelWidth, bmp.PixelHeight);
+        EnsureOverlayStateForImageSize(basisWidth, basisHeight);
     }
 
     private static void SetHandlePosition(System.Windows.Shapes.Rectangle handle, double centerX, double centerY)

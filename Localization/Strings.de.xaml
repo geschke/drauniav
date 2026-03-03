@@ -92,4 +92,19 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutLicenseValue">MIT</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutDescription">Drauniav ist eine GUI für FFmpeg und erzeugt aus Bild und Musik ein Video mit Audio-Visualizer-Overlay.</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutVersionValueTemplate">Version {0}</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelVideo">Video:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonVideoOptions">Video-Optionen...</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoSummaryTemplate">{0} x {1} | {2} | {3}</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoSummarySourceImage">Bildauflösung</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoSummarySourceCustom">Benutzerdefiniert</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoSummaryPlaceholder">Noch kein Bild ausgewählt</sys:String>
+
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoDialogTitle">Video-Optionen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoDialogHeader">Video-Optionen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoDialogCurrentResolution">Aktuelle Auflösung:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoDialogCurrentAspect">Aktuelles Seitenverhältnis:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoDialogKeepAspect">Seitenverhältnis beibehalten</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoDialogWidth">Breite (px):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoDialogHeight">Höhe (px):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VideoDialogReset">Zurücksetzen</sys:String>
 </ResourceDictionary>

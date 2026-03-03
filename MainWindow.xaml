@@ -201,10 +201,10 @@
                 <!-- Row 4: Options -->
                 <StackPanel Grid.Row="4" Orientation="Vertical" HorizontalAlignment="Left">
                     <StackPanel Orientation="Horizontal">
-                        <Label Content="{DynamicResource LabelColor}" Width="48"/>
-                        <Rectangle x:Name="RctColor" Width="26" Height="20" VerticalAlignment="Center"
-                                   Fill="White" Stroke="#888888" StrokeThickness="1" Margin="0,0,8,0"/>
-                        <Button Width="148" Click="BtnPickColor_Click">
+                        <Label Content="{DynamicResource LabelColor}" Width="70"/>
+                        <Rectangle x:Name="RctColor" Width="235" Height="20" VerticalAlignment="Center"
+                                   Fill="White" Stroke="#888888" StrokeThickness="1"/>
+                        <Button Width="220" Margin="8,0,0,0" Click="BtnPickColor_Click">
                             <StackPanel Orientation="Horizontal">
                                 <iconPacks:PackIconMaterial Kind="PaletteOutline" Width="16" Height="16" Margin="0,0,6,0"/>
                                 <TextBlock Text="{DynamicResource ButtonPickColor}"/>
@@ -221,6 +221,19 @@
                             <StackPanel Orientation="Horizontal">
                                 <iconPacks:PackIconMaterial Kind="Tune" Width="16" Height="16" Margin="0,0,6,0"/>
                                 <TextBlock Text="{DynamicResource ButtonVisualizerSettings}"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Label Content="{DynamicResource LabelVideo}" Width="70"/>
+                        <TextBlock x:Name="TxtVideoSummary" Width="235" VerticalAlignment="Center"
+                                   TextWrapping="Wrap" Foreground="#4B5563" FontSize="11"/>
+                        <Button Width="220" Margin="8,0,0,0"
+                                VerticalAlignment="Center" Click="BtnVideoOptions_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <iconPacks:PackIconMaterial Kind="AspectRatio" Width="16" Height="16" Margin="0,0,6,0"/>
+                                <TextBlock Text="{DynamicResource ButtonVideoOptions}"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>

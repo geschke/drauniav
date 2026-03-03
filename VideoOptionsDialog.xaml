@@ -1,0 +1,194 @@
+<Window x:Class="Drauniav.VideoOptionsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        Title="{DynamicResource VideoDialogTitle}"
+        Width="680"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="#F3F5F7">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="AccentBrush" Color="#2563EB"/>
+        <SolidColorBrush x:Key="PanelBorderBrush" Color="#D4D8DF"/>
+        <SolidColorBrush x:Key="ButtonHoverBrush" Color="#F0F4FB"/>
+        <SolidColorBrush x:Key="ButtonPressedBrush" Color="#E4ECFA"/>
+
+        <Style TargetType="Label">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#C9D0DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="Margin" Value="0,4,0,8"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Width" Value="110"/>
+            <Setter Property="Height" Value="34"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#1F2937"/>
+            <Setter Property="BorderBrush" Value="#C9D0DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource ButtonHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="{StaticResource ButtonPressedBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="PrimaryButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="PrimaryButtonBorder" Property="Background" Value="#1D4ED8"/>
+                                <Setter TargetName="PrimaryButtonBorder" Property="BorderBrush" Value="#1D4ED8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="PrimaryButtonBorder" Property="Background" Value="#1E40AF"/>
+                                <Setter TargetName="PrimaryButtonBorder" Property="BorderBrush" Value="#1E40AF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="PrimaryButtonBorder" Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal">
+                <iconPacks:PackIconMaterial Kind="AspectRatio" Width="18" Height="18" Margin="0,0,8,0" Foreground="#374151"/>
+                <TextBlock Text="{DynamicResource VideoDialogHeader}" FontSize="14" FontWeight="SemiBold" Foreground="#111827"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Background="White" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="185"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="{DynamicResource VideoDialogCurrentResolution}" Margin="0,0,8,6"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TxtCurrentResolution" VerticalAlignment="Center" Foreground="#111827" Margin="0,0,0,6"/>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="{DynamicResource VideoDialogCurrentAspect}" Margin="0,0,8,6"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" x:Name="TxtCurrentAspect" VerticalAlignment="Center" Foreground="#111827" Margin="0,0,0,6"/>
+
+                <CheckBox Grid.Row="2" Grid.ColumnSpan="3" x:Name="ChkKeepAspectRatio"
+                          Content="{DynamicResource VideoDialogKeepAspect}"
+                          Checked="ChkKeepAspectRatio_Changed"
+                          Unchecked="ChkKeepAspectRatio_Changed"/>
+
+                <Label Grid.Row="3" Grid.Column="0" Content="{DynamicResource VideoDialogWidth}" Margin="0,0,8,6"/>
+                <TextBox Grid.Row="3" Grid.Column="1" x:Name="TxtWidth" Margin="0,0,8,6"
+                         TextChanged="TxtWidth_TextChanged"
+                         LostFocus="TxtWidth_LostFocus"
+                         KeyDown="TxtWidth_KeyDown"
+                         PreviewTextInput="TxtNumeric_PreviewTextInput"
+                         DataObject.Pasting="TxtNumeric_Pasting"/>
+                <Slider Grid.Row="3" Grid.Column="2" x:Name="SldWidth" Margin="0,2,0,8" VerticalAlignment="Center" Minimum="64" Maximum="8192" ValueChanged="SldWidth_ValueChanged"/>
+
+                <Label Grid.Row="4" Grid.Column="0" Content="{DynamicResource VideoDialogHeight}" Margin="0,0,8,6"/>
+                <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtHeight" Margin="0,0,8,6"
+                         TextChanged="TxtHeight_TextChanged"
+                         LostFocus="TxtHeight_LostFocus"
+                         KeyDown="TxtHeight_KeyDown"
+                         PreviewTextInput="TxtNumeric_PreviewTextInput"
+                         DataObject.Pasting="TxtNumeric_Pasting"/>
+                <Slider Grid.Row="4" Grid.Column="2" x:Name="SldHeight" Margin="0,2,0,8" VerticalAlignment="Center" Minimum="64" Maximum="8192" ValueChanged="SldHeight_ValueChanged"/>
+
+                <Button Grid.Row="5" Grid.Column="0" Width="130" Click="BtnReset_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Kind="Restore" Width="16" Height="16" Margin="0,0,6,0"/>
+                        <TextBlock Text="{DynamicResource VideoDialogReset}"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Margin="0,0,8,0" Click="BtnCancel_Click">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="Close" Width="16" Height="16" Margin="0,0,6,0"/>
+                    <TextBlock Text="{DynamicResource ButtonCancel}"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource PrimaryButton}" IsDefault="True" Click="BtnOk_Click">
+                <StackPanel Orientation="Horizontal">
+                    <iconPacks:PackIconMaterial Kind="CheckCircleOutline" Width="16" Height="16" Margin="0,0,6,0"/>
+                    <TextBlock Text="{DynamicResource ButtonApply}"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

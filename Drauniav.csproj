@@ -10,7 +10,7 @@
     <Platforms>x64</Platforms>
     <AssemblyName>Drauniav</AssemblyName>
     <RootNamespace>Drauniav</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <GeneratedAppIcon>Assets\Drauniav.ico</GeneratedAppIcon>
     <ApplicationIcon Condition="Exists('$(MSBuildProjectDirectory)\$(GeneratedAppIcon)')">$(GeneratedAppIcon)</ApplicationIcon>
   </PropertyGroup>

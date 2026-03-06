@@ -283,6 +283,10 @@
                             <Rectangle x:Name="OverlayBottomLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
                             <Rectangle x:Name="OverlayLeftLine"   Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
                             <Rectangle x:Name="OverlayRightLine"  Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Line x:Name="OverlayTopEdgeMarker" Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Line x:Name="OverlayDirectionStem" Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Line x:Name="OverlayDirectionHeadLeft" Visibility="Collapsed" IsHitTestVisible="False"/>
+                            <Line x:Name="OverlayDirectionHeadRight" Visibility="Collapsed" IsHitTestVisible="False"/>
                             <Rectangle x:Name="HandleTopLeft"     Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNWSE"/>
                             <Rectangle x:Name="HandleTop"         Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNS"/>
                             <Rectangle x:Name="HandleTopRight"    Width="6" Height="6" Fill="White" Stroke="#303030" StrokeThickness="1" Visibility="Collapsed" Cursor="SizeNESW"/>

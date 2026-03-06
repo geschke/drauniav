@@ -1306,6 +1306,10 @@ public partial class MainWindow : Window
         OverlayBottomLine.Visibility = Visibility.Collapsed;
         OverlayLeftLine.Visibility = Visibility.Collapsed;
         OverlayRightLine.Visibility = Visibility.Collapsed;
+        OverlayTopEdgeMarker.Visibility = Visibility.Collapsed;
+        OverlayDirectionStem.Visibility = Visibility.Collapsed;
+        OverlayDirectionHeadLeft.Visibility = Visibility.Collapsed;
+        OverlayDirectionHeadRight.Visibility = Visibility.Collapsed;
 
         CenterGuideLine.Visibility = Visibility.Collapsed;
         CenterGuideLineVertical.Visibility = Visibility.Collapsed;
@@ -1355,12 +1359,14 @@ public partial class MainWindow : Window
 
         // Bright border lines
         var lineBrush = new SolidColorBrush(Color.FromArgb(220, tint.R, tint.G, tint.B));
+        double centerX = overlayRect.Left + (overlayRect.Width / 2.0);
+        double centerY = overlayRect.Top + (overlayRect.Height / 2.0);
+        double renderPreviewW = overlayRect.Width;
+        double renderPreviewH = overlayRect.Height;
 
         if (hasRotation)
         {
-            ComputeRenderSizeFromVisualSize(overlayRect.Width, overlayRect.Height, effectiveRotation, out double renderPreviewW, out double renderPreviewH);
-            double centerX = overlayRect.Left + (overlayRect.Width / 2.0);
-            double centerY = overlayRect.Top + (overlayRect.Height / 2.0);
+            ComputeRenderSizeFromVisualSize(overlayRect.Width, overlayRect.Height, effectiveRotation, out renderPreviewW, out renderPreviewH);
             OverlayRotatedBar.Fill = new SolidColorBrush(Color.FromArgb(115, tint.R, tint.G, tint.B));
             OverlayRotatedBar.Stroke = lineBrush;
             OverlayRotatedBar.StrokeThickness = 1;
@@ -1377,6 +1383,47 @@ public partial class MainWindow : Window
             OverlayRotatedBar.Visibility = Visibility.Collapsed;
             OverlayRotatedBar.RenderTransform = Transform.Identity;
         }
+
+        double topEdgeY = centerY - (renderPreviewH / 2.0);
+        OverlayTopEdgeMarker.Stroke = lineBrush;
+        OverlayTopEdgeMarker.StrokeThickness = 3.0;
+        OverlayTopEdgeMarker.X1 = centerX - (renderPreviewW / 2.0);
+        OverlayTopEdgeMarker.Y1 = topEdgeY;
+        OverlayTopEdgeMarker.X2 = centerX + (renderPreviewW / 2.0);
+        OverlayTopEdgeMarker.Y2 = topEdgeY;
+        OverlayTopEdgeMarker.RenderTransform = new RotateTransform(effectiveRotation, centerX, centerY);
+        OverlayTopEdgeMarker.Visibility = Visibility.Visible;
+
+        const double arrowOutside = 8.0;
+        const double arrowHeadSize = 4.0;
+        double arrowTipY = centerY - (renderPreviewH / 2.0) - arrowOutside;
+
+        OverlayDirectionStem.Stroke = lineBrush;
+        OverlayDirectionStem.StrokeThickness = 2.2;
+        OverlayDirectionStem.X1 = centerX;
+        OverlayDirectionStem.Y1 = centerY;
+        OverlayDirectionStem.X2 = centerX;
+        OverlayDirectionStem.Y2 = arrowTipY;
+        OverlayDirectionStem.RenderTransform = new RotateTransform(effectiveRotation, centerX, centerY);
+        OverlayDirectionStem.Visibility = Visibility.Visible;
+
+        OverlayDirectionHeadLeft.Stroke = lineBrush;
+        OverlayDirectionHeadLeft.StrokeThickness = 2.2;
+        OverlayDirectionHeadLeft.X1 = centerX;
+        OverlayDirectionHeadLeft.Y1 = arrowTipY;
+        OverlayDirectionHeadLeft.X2 = centerX - arrowHeadSize;
+        OverlayDirectionHeadLeft.Y2 = arrowTipY + arrowHeadSize;
+        OverlayDirectionHeadLeft.RenderTransform = new RotateTransform(effectiveRotation, centerX, centerY);
+        OverlayDirectionHeadLeft.Visibility = Visibility.Visible;
+
+        OverlayDirectionHeadRight.Stroke = lineBrush;
+        OverlayDirectionHeadRight.StrokeThickness = 2.2;
+        OverlayDirectionHeadRight.X1 = centerX;
+        OverlayDirectionHeadRight.Y1 = arrowTipY;
+        OverlayDirectionHeadRight.X2 = centerX + arrowHeadSize;
+        OverlayDirectionHeadRight.Y2 = arrowTipY + arrowHeadSize;
+        OverlayDirectionHeadRight.RenderTransform = new RotateTransform(effectiveRotation, centerX, centerY);
+        OverlayDirectionHeadRight.Visibility = Visibility.Visible;
 
         OverlayTopLine.Fill = lineBrush;
         OverlayTopLine.Width = overlayRect.Width;

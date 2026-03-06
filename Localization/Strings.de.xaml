@@ -75,6 +75,12 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelColorKey">Schwarzen Hintergrund per Colorkey entfernen</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelKeySimilarity">Key Similarity:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelKeyBlend">Key Blend:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelSmoothSpectrum">Smooth spectrum</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelSmoothness">Smoothness:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelAdvancedOptions">Erweiterte Einstellungen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelAutoHeadroom">Auto headroom</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelSuppressResidues">Suppress low-level residues</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelMinAmplitude">Minimum amplitude:</sys:String>
 
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutTitle">Über</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="AboutHeader">Über Drauniav</sys:String>

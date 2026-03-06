@@ -44,6 +44,38 @@ public partial class VisualizerSettingsDialog : Window
         UpdateShowfreqFieldsEnabled(type == "showfreqs");
     }
 
+    private void ChkSmoothSpectrum_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressEvents)
+            return;
+
+        UpdateShowfreqFieldsEnabled(GetComboValue(CboType, "showfreqs") == "showfreqs");
+    }
+
+    private void SldSmoothness_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TxtSmoothnessValue == null)
+            return;
+
+        TxtSmoothnessValue.Text = $"{(int)Math.Round(SldSmoothness.Value)}";
+    }
+
+    private void ChkUseMinAmplitude_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_suppressEvents)
+            return;
+
+        UpdateShowfreqFieldsEnabled(GetComboValue(CboType, "showfreqs") == "showfreqs");
+    }
+
+    private void SldMinAmplitude_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (TxtMinAmplitudeValue == null)
+            return;
+
+        TxtMinAmplitudeValue.Text = $"{(int)Math.Round(SldMinAmplitude.Value)}";
+    }
+
     private void BtnCancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
     private void BtnOk_Click(object sender, RoutedEventArgs e)
@@ -75,6 +107,13 @@ public partial class VisualizerSettingsDialog : Window
         TxtColorKeySimilarity.Text = VisualizerSettings.FormatDouble(settings.ColorKeySimilarity);
         TxtColorKeyBlend.Text = VisualizerSettings.FormatDouble(settings.ColorKeyBlend);
         ChkUseColorKey.IsChecked = settings.UseColorKey;
+        ChkSmoothSpectrum.IsChecked = settings.SmoothSpectrum;
+        SldSmoothness.Value = Math.Clamp(settings.Smoothness, 0, 100);
+        TxtSmoothnessValue.Text = $"{(int)Math.Round(SldSmoothness.Value)}";
+        ChkAutoHeadroom.IsChecked = settings.AutoHeadroom;
+        ChkUseMinAmplitude.IsChecked = settings.UseMinAmplitude;
+        SldMinAmplitude.Value = Math.Clamp(settings.MinAmplitude, 0, 100);
+        TxtMinAmplitudeValue.Text = $"{(int)Math.Round(SldMinAmplitude.Value)}";
 
         UpdateShowfreqFieldsEnabled(settings.FilterType == "showfreqs");
         _suppressEvents = false;
@@ -99,7 +138,12 @@ public partial class VisualizerSettingsDialog : Window
             FScale = GetComboValue(CboFScale, "log"),
             UseColorKey = ChkUseColorKey.IsChecked == true,
             ColorKeySimilarity = ParseDouble(TxtColorKeySimilarity.Text, 0.10, 0.0, 1.0),
-            ColorKeyBlend = ParseDouble(TxtColorKeyBlend.Text, 0.0, 0.0, 1.0)
+            ColorKeyBlend = ParseDouble(TxtColorKeyBlend.Text, 0.0, 0.0, 1.0),
+            SmoothSpectrum = type == "showfreqs" && ChkSmoothSpectrum.IsChecked == true,
+            Smoothness = type == "showfreqs" ? (int)Math.Round(SldSmoothness.Value) : 0,
+            AutoHeadroom = type == "showfreqs" && ChkAutoHeadroom.IsChecked == true,
+            UseMinAmplitude = type == "showfreqs" && ChkUseMinAmplitude.IsChecked == true,
+            MinAmplitude = type == "showfreqs" ? (int)Math.Round(SldMinAmplitude.Value) : 0
         };
     }
 
@@ -159,6 +203,15 @@ public partial class VisualizerSettingsDialog : Window
         CboAScale.IsEnabled = enabled;
         CboFScale.IsEnabled = enabled;
         TxtWinSize.IsEnabled = enabled;
+        AdvancedOptionsPanel.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
+        bool smoothEnabled = enabled && ChkSmoothSpectrum.IsChecked == true;
+        SldSmoothness.IsEnabled = smoothEnabled;
+        LblSmoothness.IsEnabled = smoothEnabled;
+        TxtSmoothnessValue.Opacity = smoothEnabled ? 1.0 : 0.5;
+        bool minAmpEnabled = enabled && ChkUseMinAmplitude.IsChecked == true;
+        SldMinAmplitude.IsEnabled = minAmpEnabled;
+        LblMinAmplitude.IsEnabled = minAmpEnabled;
+        TxtMinAmplitudeValue.Opacity = minAmpEnabled ? 1.0 : 0.5;
     }
 
     private static int ParseInt(string? value, int fallback, int min, int max)

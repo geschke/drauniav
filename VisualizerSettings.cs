@@ -17,6 +17,11 @@ public sealed class VisualizerSettings
     public string AScale { get; set; } = "sqrt";
     public int WinSize { get; set; } = 4096;
     public string FScale { get; set; } = "log";
+    public bool SmoothSpectrum { get; set; } = false;
+    public int Smoothness { get; set; } = 60;
+    public bool AutoHeadroom { get; set; } = false;
+    public bool UseMinAmplitude { get; set; } = false;
+    public int MinAmplitude { get; set; } = 20;
 
     public VisualizerSettings Clone() =>
         new()
@@ -33,7 +38,12 @@ public sealed class VisualizerSettings
             ColorKeyBlend = ColorKeyBlend,
             AScale = AScale,
             WinSize = WinSize,
-            FScale = FScale
+            FScale = FScale,
+            SmoothSpectrum = SmoothSpectrum,
+            Smoothness = Smoothness,
+            AutoHeadroom = AutoHeadroom,
+            UseMinAmplitude = UseMinAmplitude,
+            MinAmplitude = MinAmplitude
         };
 
     public string ToSummaryText()
@@ -64,7 +74,12 @@ public sealed class VisualizerSettings
                 ColorKeyBlend = 0.0,
                 AScale = "sqrt",
                 WinSize = 4096,
-                FScale = "log"
+                FScale = "log",
+                SmoothSpectrum = false,
+                Smoothness = 50,
+                AutoHeadroom = false,
+                UseMinAmplitude = false,
+                MinAmplitude = 25
             },
             "Wide Wave" => new VisualizerSettings
             {
@@ -80,7 +95,12 @@ public sealed class VisualizerSettings
                 ColorKeyBlend = 0.0,
                 AScale = "sqrt",
                 WinSize = 4096,
-                FScale = "log"
+                FScale = "log",
+                SmoothSpectrum = false,
+                Smoothness = 0,
+                AutoHeadroom = false,
+                UseMinAmplitude = false,
+                MinAmplitude = 0
             },
             "Crisp Spectrum" => new VisualizerSettings
             {
@@ -96,7 +116,12 @@ public sealed class VisualizerSettings
                 ColorKeyBlend = 0.0,
                 AScale = "sqrt",
                 WinSize = 4096,
-                FScale = "log"
+                FScale = "log",
+                SmoothSpectrum = false,
+                Smoothness = 35,
+                AutoHeadroom = false,
+                UseMinAmplitude = false,
+                MinAmplitude = 30
             },
             _ => new VisualizerSettings
             {
@@ -112,7 +137,12 @@ public sealed class VisualizerSettings
                 ColorKeyBlend = 0.0,
                 AScale = "sqrt",
                 WinSize = 4096,
-                FScale = "log"
+                FScale = "log",
+                SmoothSpectrum = false,
+                Smoothness = 60,
+                AutoHeadroom = false,
+                UseMinAmplitude = false,
+                MinAmplitude = 20
             }
         };
     }
@@ -140,7 +170,12 @@ public sealed class VisualizerSettings
             && Math.Abs(a.ColorKeyBlend - b.ColorKeyBlend) < 0.001
             && a.AScale == b.AScale
             && a.WinSize == b.WinSize
-            && a.FScale == b.FScale;
+            && a.FScale == b.FScale
+            && a.SmoothSpectrum == b.SmoothSpectrum
+            && a.Smoothness == b.Smoothness
+            && a.AutoHeadroom == b.AutoHeadroom
+            && a.UseMinAmplitude == b.UseMinAmplitude
+            && a.MinAmplitude == b.MinAmplitude;
     }
 
     public static string FormatDouble(double value) =>

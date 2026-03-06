@@ -640,8 +640,29 @@ public partial class MainWindow : Window
         }
         else
         {
+            double showfreqVolumeDb = volumeDb;
+            if (settings.AutoHeadroom && settings.SmoothSpectrum)
+                showfreqVolumeDb += MapSmoothnessToHeadroomDb(settings.Smoothness);
+            showfreqVolumeDb = Math.Clamp(showfreqVolumeDb, -96.0, 40.0);
+            string showfreqVolumeText = showfreqVolumeDb.ToString("0.###", CultureInfo.InvariantCulture);
+
+            string averagingPart = string.Empty;
+            if (settings.SmoothSpectrum)
+            {
+                int averaging = MapSmoothnessToAveraging(settings.Smoothness);
+                averagingPart = $":averaging={averaging}";
+            }
+
+            string minAmpPart = string.Empty;
+            if (settings.UseMinAmplitude)
+            {
+                double minAmp = MapMinAmplitude(settings.MinAmplitude);
+                string minAmpText = minAmp.ToString("G17", CultureInfo.InvariantCulture);
+                minAmpPart = $":minamp={minAmpText}";
+            }
+
             filterParts.Add(
-                $"[1:a]volume={volumeText}dB,showfreqs=s={waveW}x{waveH}:mode={mode}:ascale={ascale}:win_size={winSize}:rate={rate}:fscale={fscale}:colors={color},format=rgba[{currentLabel}]");
+                $"[1:a]volume={showfreqVolumeText}dB,showfreqs=s={waveW}x{waveH}:mode={mode}:ascale={ascale}:win_size={winSize}:rate={rate}:fscale={fscale}{averagingPart}{minAmpPart}:colors={color},format=rgba[{currentLabel}]");
         }
 
         if (settings.UseColorKey)
@@ -684,6 +705,39 @@ public partial class MainWindow : Window
             return GetSafeChoice(mode, "line", "line", "p2p", "point");
 
         return GetSafeChoice(mode, "line", "line", "bar", "dot");
+    }
+
+    private static int MapSmoothnessToAveraging(int smoothness)
+    {
+        int clamped = Math.Clamp(smoothness, 0, 100);
+        if (clamped <= 24)
+            return 1;
+        if (clamped <= 49)
+            return 2;
+        if (clamped <= 74)
+            return 3;
+        return 4;
+    }
+
+    private static double MapSmoothnessToHeadroomDb(int smoothness)
+    {
+        int clamped = Math.Clamp(smoothness, 0, 100);
+        if (clamped <= 24)
+            return 0.0;
+        if (clamped <= 49)
+            return -2.0;
+        if (clamped <= 74)
+            return -4.0;
+        return -6.0;
+    }
+
+    private static double MapMinAmplitude(int minAmplitude)
+    {
+        int clamped = Math.Clamp(minAmplitude, 0, 100);
+        const double minValue = 1e-9;
+        const double maxValue = 8e-7;
+        double t = clamped / 100.0;
+        return minValue * Math.Pow(maxValue / minValue, t);
     }
 
     private static string GetSafeChoice(string value, string fallback, params string[] allowed)

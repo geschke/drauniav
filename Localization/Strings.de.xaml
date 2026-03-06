@@ -21,6 +21,17 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonVisualizerSettings">Visualizer-Einstellungen...</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonGenerate">Generieren</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="CheckPlayAfterGenerate">Nach dem Generieren abspielen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelVisualizerRotation">Visualizer-Drehung:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonRotateLeft90">90° links drehen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonRotateRight90">90° rechts drehen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonFineRotationMinus">Feinrotation -</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonFineRotationPlus">Feinrotation +</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonRotationReset">Zurücksetzen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipLeft90">90° nach links drehen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipRight90">90° nach rechts drehen</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipFineMinus">Feinrotation -1°</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipFinePlus">Feinrotation +1°</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipReset">Drehung zurücksetzen</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelCommandPreview">FFmpeg CLI-Befehl</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="PlaceholderCommandPreview">Die FFmpeg-Kommando-Vorschau erscheint hier, sobald ein Hintergrundbild gewählt ist.</sys:String>
 

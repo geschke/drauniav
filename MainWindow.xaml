@@ -263,6 +263,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0" Background="#3A3D43" BorderBrush="#2C2F35" BorderThickness="1" CornerRadius="8">
@@ -277,6 +278,7 @@
                                         Foreground="White" Opacity="0.80" Visibility="Collapsed" IsHitTestVisible="False"/>
                             <!-- draggable/resizable overlay rectangle -->
                             <Rectangle x:Name="OverlayBar"        Visibility="Collapsed" Cursor="SizeAll"/>
+                            <Rectangle x:Name="OverlayRotatedBar" Visibility="Collapsed" IsHitTestVisible="False"/>
                             <Rectangle x:Name="OverlayTopLine"    Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
                             <Rectangle x:Name="OverlayBottomLine" Height="1" Visibility="Collapsed" IsHitTestVisible="False"/>
                             <Rectangle x:Name="OverlayLeftLine"   Width="1"  Visibility="Collapsed" IsHitTestVisible="False"/>
@@ -300,6 +302,44 @@
                            Foreground="#6B7280"
                            TextWrapping="Wrap"
                            Visibility="Collapsed"/>
+
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal"
+                            Margin="2,8,0,0"
+                            VerticalAlignment="Center">
+                    <Button Width="36" Height="30" Padding="0"
+                            ToolTip="{DynamicResource RotationTooltipLeft90}"
+                            Click="BtnRotateLeft_Click">
+                        <iconPacks:PackIconMaterial Kind="RotateLeftVariant" Width="16" Height="16"/>
+                    </Button>
+                    <Button Width="36" Height="30" Padding="0" Margin="6,0,0,0"
+                            ToolTip="{DynamicResource RotationTooltipRight90}"
+                            Click="BtnRotateRight_Click">
+                        <iconPacks:PackIconMaterial Kind="RotateRightVariant" Width="16" Height="16"/>
+                    </Button>
+                    <Button Width="30" Height="30" Padding="0" Margin="8,0,0,0"
+                            ToolTip="{DynamicResource RotationTooltipFineMinus}"
+                            Click="BtnFineRotateMinus_Click">
+                        <TextBlock Text="-" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+                    <TextBlock x:Name="TxtVisualizerRotationAngle"
+                               Width="58"
+                               VerticalAlignment="Center"
+                               TextAlignment="Center"
+                               Foreground="#1F2937"
+                               FontWeight="SemiBold"
+                               Text="0°"/>
+                    <Button Width="30" Height="30" Padding="0"
+                            ToolTip="{DynamicResource RotationTooltipFinePlus}"
+                            Click="BtnFineRotatePlus_Click">
+                        <TextBlock Text="+" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+                    <Button Width="36" Height="30" Padding="0" Margin="8,0,0,0"
+                            ToolTip="{DynamicResource RotationTooltipReset}"
+                            Click="BtnRotationReset_Click">
+                        <iconPacks:PackIconMaterial Kind="Restore" Width="16" Height="16"/>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Grid>
 

@@ -29,11 +29,16 @@ public partial class MainWindow : Window
     private const int EyedropperSampleSize = 15;
     private const double EyedropperLensSize = 120.0;
     private const double EyedropperLensOffset = 20.0;
+    private const int MinFineRotationDeg = -30;
+    private const int MaxFineRotationDeg = 30;
+    private const int FineRotationStepDeg = 1;
 
     private bool _overlayInitialized;
     private bool _isDragging;
     private bool _snapCenterX;
     private bool _snapCenterY;
+    private int _baseRotationDeg;
+    private int _fineRotationDeg;
 
     // Stored in output video pixels for direct FFmpeg usage.
     private double _overlayX;
@@ -73,6 +78,7 @@ public partial class MainWindow : Window
         UpdateVisualizerSummary();
         UpdateVideoSummary();
         UpdateCommandPreview();
+        UpdateRotationAngleDisplay();
         ImgPreview.SizeChanged         += (_, _) => UpdateOverlay();
         OverlayBar.MouseLeftButtonDown += OverlayBar_MouseDown;
         OverlayBar.MouseLeftButtonUp   += OverlayBar_MouseUp;
@@ -305,6 +311,39 @@ public partial class MainWindow : Window
         UpdateCommandPreview();
     }
 
+    private void BtnRotateLeft_Click(object sender, RoutedEventArgs e)
+    {
+        _baseRotationDeg = NormalizeBaseRotation(_baseRotationDeg - 90);
+        SwapOverlayDimensionsForQuarterTurn();
+        ApplyRotationChange();
+    }
+
+    private void BtnRotateRight_Click(object sender, RoutedEventArgs e)
+    {
+        _baseRotationDeg = NormalizeBaseRotation(_baseRotationDeg + 90);
+        SwapOverlayDimensionsForQuarterTurn();
+        ApplyRotationChange();
+    }
+
+    private void BtnFineRotateMinus_Click(object sender, RoutedEventArgs e)
+    {
+        _fineRotationDeg = Math.Clamp(_fineRotationDeg - FineRotationStepDeg, MinFineRotationDeg, MaxFineRotationDeg);
+        ApplyRotationChange();
+    }
+
+    private void BtnFineRotatePlus_Click(object sender, RoutedEventArgs e)
+    {
+        _fineRotationDeg = Math.Clamp(_fineRotationDeg + FineRotationStepDeg, MinFineRotationDeg, MaxFineRotationDeg);
+        ApplyRotationChange();
+    }
+
+    private void BtnRotationReset_Click(object sender, RoutedEventArgs e)
+    {
+        _baseRotationDeg = 0;
+        _fineRotationDeg = 0;
+        ApplyRotationChange();
+    }
+
     private void UpdateVisualizerSummary()
     {
         string alphaText = $"{Math.Round(_visualizerSettings.Alpha * 100):0}%";
@@ -389,6 +428,61 @@ public partial class MainWindow : Window
         }
 
         return BuildAspectRatioLabel(width, height);
+    }
+
+    private void ApplyRotationChange()
+    {
+        UpdateRotationAngleDisplay();
+        UpdateOverlay();
+        UpdateCommandPreview();
+    }
+
+    private void UpdateRotationAngleDisplay()
+    {
+        if (TxtVisualizerRotationAngle == null)
+            return;
+
+        TxtVisualizerRotationAngle.Text = string.Format(
+            CultureInfo.CurrentCulture,
+            "{0}°",
+            GetEffectiveRotationDeg());
+    }
+
+    private int GetEffectiveRotationDeg() => _baseRotationDeg + _fineRotationDeg;
+
+    private static int NormalizeBaseRotation(int value)
+    {
+        int normalized = value % 360;
+        if (normalized < 0)
+            normalized += 360;
+        return normalized;
+    }
+
+    private void SwapOverlayDimensionsForQuarterTurn()
+    {
+        if (!_overlayInitialized)
+            return;
+
+        int imageWidth = 0;
+        int imageHeight = 0;
+        if (!TryGetEffectiveOutputResolution(out imageWidth, out imageHeight))
+        {
+            if (_sourceImageBitmap == null)
+                return;
+
+            imageWidth = _sourceImageBitmap.PixelWidth;
+            imageHeight = _sourceImageBitmap.PixelHeight;
+        }
+
+        double centerX = _overlayX + (_overlayWidth / 2.0);
+        double centerY = _overlayY + (_overlayHeight / 2.0);
+        double swappedWidth = Math.Clamp(_overlayHeight, 1.0, imageWidth);
+        double swappedHeight = Math.Clamp(_overlayWidth, 1.0, imageHeight);
+
+        _overlayWidth = swappedWidth;
+        _overlayHeight = swappedHeight;
+        _overlayX = Math.Clamp(centerX - (swappedWidth / 2.0), 0.0, imageWidth - swappedWidth);
+        _overlayY = Math.Clamp(centerY - (swappedHeight / 2.0), 0.0, imageHeight - swappedHeight);
     }
 
     private void ApplyPreviewAspect()
@@ -606,10 +700,22 @@ public partial class MainWindow : Window
     {
         EnsureOverlayStateForImageSize(imgWidth, imgHeight);
 
-        int waveW = Math.Clamp((int)Math.Round(_overlayWidth), 1, imgWidth);
-        int waveH = Math.Clamp((int)Math.Round(_overlayHeight), 1, imgHeight);
-        int posX = Math.Clamp((int)Math.Round(_overlayX), 0, imgWidth - waveW);
-        int posY = Math.Clamp((int)Math.Round(_overlayY), 0, imgHeight - waveH);
+        int boxW = Math.Clamp((int)Math.Round(_overlayWidth), 1, imgWidth);
+        int boxH = Math.Clamp((int)Math.Round(_overlayHeight), 1, imgHeight);
+        int posX = Math.Clamp((int)Math.Round(_overlayX), 0, imgWidth - boxW);
+        int posY = Math.Clamp((int)Math.Round(_overlayY), 0, imgHeight - boxH);
+        int baseRotationDeg = NormalizeBaseRotation(_baseRotationDeg);
+        int fineRotationDeg = Math.Clamp(_fineRotationDeg, MinFineRotationDeg, MaxFineRotationDeg);
+        bool hasRotation = baseRotationDeg != 0 || fineRotationDeg != 0;
+        double effectiveRotationDeg = baseRotationDeg + fineRotationDeg;
+
+        double renderW = boxW;
+        double renderH = boxH;
+        if (hasRotation)
+            ComputeRenderSizeFromVisualSize(boxW, boxH, effectiveRotationDeg, out renderW, out renderH);
+
+        int waveW = Math.Clamp((int)Math.Round(renderW), 1, 16384);
+        int waveH = Math.Clamp((int)Math.Round(renderH), 1, 16384);
 
         string filterType = settings.FilterType == "showwaves" ? "showwaves" : "showfreqs";
         string mode = GetSafeMode(filterType, settings.Mode);
@@ -695,7 +801,45 @@ public partial class MainWindow : Window
             currentLabel = nextLabel;
         }
 
-        filterParts.Add($"[bg][{currentLabel}]overlay={posX}:{posY}:format=auto[v]");
+        if (baseRotationDeg != 0)
+        {
+            string nextLabel = "vizRotateBase";
+            string baseRotationFilter = baseRotationDeg switch
+            {
+                90 => "transpose=clock",
+                180 => "hflip,vflip",
+                270 => "transpose=cclock",
+                _ => string.Empty
+            };
+
+            if (!string.IsNullOrEmpty(baseRotationFilter))
+            {
+                filterParts.Add($"[{currentLabel}]{baseRotationFilter}[{nextLabel}]");
+                currentLabel = nextLabel;
+            }
+        }
+
+        if (fineRotationDeg != 0)
+        {
+            double radians = fineRotationDeg * Math.PI / 180.0;
+            string radiansText = radians.ToString("0.###########", CultureInfo.InvariantCulture);
+            string nextLabel = "vizRotateFine";
+            filterParts.Add($"[{currentLabel}]rotate={radiansText}:ow=rotw(iw):oh=roth(ih):c=none[{nextLabel}]");
+            currentLabel = nextLabel;
+        }
+
+        if (hasRotation)
+        {
+            double centerX = posX + (boxW / 2.0);
+            double centerY = posY + (boxH / 2.0);
+            string centerXText = centerX.ToString("0.###", CultureInfo.InvariantCulture);
+            string centerYText = centerY.ToString("0.###", CultureInfo.InvariantCulture);
+            filterParts.Add($"[bg][{currentLabel}]overlay={centerXText}-overlay_w/2:{centerYText}-overlay_h/2:format=auto[v]");
+        }
+        else
+        {
+            filterParts.Add($"[bg][{currentLabel}]overlay={posX}:{posY}:format=auto[v]");
+        }
         return string.Join(";", filterParts);
     }
 
@@ -705,6 +849,29 @@ public partial class MainWindow : Window
             return GetSafeChoice(mode, "line", "line", "p2p", "point");
 
         return GetSafeChoice(mode, "line", "line", "bar", "dot");
+    }
+
+    private static void ComputeRenderSizeFromVisualSize(double visualWidth, double visualHeight, double angleDeg, out double renderWidth, out double renderHeight)
+    {
+        double width = Math.Max(1.0, visualWidth);
+        double height = Math.Max(1.0, visualHeight);
+        double radians = angleDeg * Math.PI / 180.0;
+        double c = Math.Abs(Math.Cos(radians));
+        double s = Math.Abs(Math.Sin(radians));
+        double det = (c * c) - (s * s);
+
+        if (Math.Abs(det) < 0.0001)
+        {
+            renderWidth = width;
+            renderHeight = height;
+            return;
+        }
+
+        renderWidth = ((c * width) - (s * height)) / det;
+        renderHeight = ((-s * width) + (c * height)) / det;
+
+        renderWidth = Math.Max(1.0, Math.Abs(renderWidth));
+        renderHeight = Math.Max(1.0, Math.Abs(renderHeight));
     }
 
     private static int MapSmoothnessToAveraging(int smoothness)
@@ -1134,6 +1301,7 @@ public partial class MainWindow : Window
     private void HideOverlayElements()
     {
         OverlayBar.Visibility = Visibility.Collapsed;
+        OverlayRotatedBar.Visibility = Visibility.Collapsed;
         OverlayTopLine.Visibility = Visibility.Collapsed;
         OverlayBottomLine.Visibility = Visibility.Collapsed;
         OverlayLeftLine.Visibility = Visibility.Collapsed;
@@ -1171,7 +1339,14 @@ public partial class MainWindow : Window
         Color tint = ParseSpectrumColor(_spectrumColor);
 
         // Semi-transparent fill
-        OverlayBar.Fill = new SolidColorBrush(Color.FromArgb(115, tint.R, tint.G, tint.B));
+        double effectiveRotation = GetEffectiveRotationDeg();
+        bool hasRotation = Math.Abs(effectiveRotation) > 0.001;
+
+        OverlayBar.Fill = hasRotation
+            ? Brushes.Transparent
+            : new SolidColorBrush(Color.FromArgb(115, tint.R, tint.G, tint.B));
+        OverlayBar.RenderTransform = Transform.Identity;
+        OverlayBar.RenderTransformOrigin = new Point(0.5, 0.5);
         OverlayBar.Width = overlayRect.Width;
         OverlayBar.Height = overlayRect.Height;
         Canvas.SetLeft(OverlayBar, overlayRect.Left);
@@ -1180,6 +1355,28 @@ public partial class MainWindow : Window
 
         // Bright border lines
         var lineBrush = new SolidColorBrush(Color.FromArgb(220, tint.R, tint.G, tint.B));
+
+        if (hasRotation)
+        {
+            ComputeRenderSizeFromVisualSize(overlayRect.Width, overlayRect.Height, effectiveRotation, out double renderPreviewW, out double renderPreviewH);
+            double centerX = overlayRect.Left + (overlayRect.Width / 2.0);
+            double centerY = overlayRect.Top + (overlayRect.Height / 2.0);
+            OverlayRotatedBar.Fill = new SolidColorBrush(Color.FromArgb(115, tint.R, tint.G, tint.B));
+            OverlayRotatedBar.Stroke = lineBrush;
+            OverlayRotatedBar.StrokeThickness = 1;
+            OverlayRotatedBar.Width = renderPreviewW;
+            OverlayRotatedBar.Height = renderPreviewH;
+            Canvas.SetLeft(OverlayRotatedBar, centerX - (renderPreviewW / 2.0));
+            Canvas.SetTop(OverlayRotatedBar, centerY - (renderPreviewH / 2.0));
+            OverlayRotatedBar.RenderTransformOrigin = new Point(0.5, 0.5);
+            OverlayRotatedBar.RenderTransform = new RotateTransform(effectiveRotation);
+            OverlayRotatedBar.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            OverlayRotatedBar.Visibility = Visibility.Collapsed;
+            OverlayRotatedBar.RenderTransform = Transform.Identity;
+        }
 
         OverlayTopLine.Fill = lineBrush;
         OverlayTopLine.Width = overlayRect.Width;
@@ -1209,14 +1406,32 @@ public partial class MainWindow : Window
         double midX = overlayRect.Left + overlayRect.Width / 2.0;
         double midY = overlayRect.Top + overlayRect.Height / 2.0;
 
-        SetHandlePosition(HandleTopLeft, overlayRect.Left, overlayRect.Top);
-        SetHandlePosition(HandleTop, midX, overlayRect.Top);
-        SetHandlePosition(HandleTopRight, overlayRect.Right, overlayRect.Top);
-        SetHandlePosition(HandleRight, overlayRect.Right, midY);
-        SetHandlePosition(HandleBottomRight, overlayRect.Right, overlayRect.Bottom);
-        SetHandlePosition(HandleBottom, midX, overlayRect.Bottom);
-        SetHandlePosition(HandleBottomLeft, overlayRect.Left, overlayRect.Bottom);
-        SetHandlePosition(HandleLeft, overlayRect.Left, midY);
+        Point handleTopLeft = new(overlayRect.Left, overlayRect.Top);
+        Point handleTop = new(midX, overlayRect.Top);
+        Point handleTopRight = new(overlayRect.Right, overlayRect.Top);
+        Point handleRight = new(overlayRect.Right, midY);
+        Point handleBottomRight = new(overlayRect.Right, overlayRect.Bottom);
+        Point handleBottom = new(midX, overlayRect.Bottom);
+        Point handleBottomLeft = new(overlayRect.Left, overlayRect.Bottom);
+        Point handleLeft = new(overlayRect.Left, midY);
+
+        SetHandlePosition(HandleTopLeft, handleTopLeft.X, handleTopLeft.Y);
+        SetHandlePosition(HandleTop, handleTop.X, handleTop.Y);
+        SetHandlePosition(HandleTopRight, handleTopRight.X, handleTopRight.Y);
+        SetHandlePosition(HandleRight, handleRight.X, handleRight.Y);
+        SetHandlePosition(HandleBottomRight, handleBottomRight.X, handleBottomRight.Y);
+        SetHandlePosition(HandleBottom, handleBottom.X, handleBottom.Y);
+        SetHandlePosition(HandleBottomLeft, handleBottomLeft.X, handleBottomLeft.Y);
+        SetHandlePosition(HandleLeft, handleLeft.X, handleLeft.Y);
+
+        HandleTopLeft.Cursor = Cursors.SizeNWSE;
+        HandleTop.Cursor = Cursors.SizeNS;
+        HandleTopRight.Cursor = Cursors.SizeNESW;
+        HandleRight.Cursor = Cursors.SizeWE;
+        HandleBottomRight.Cursor = Cursors.SizeNWSE;
+        HandleBottom.Cursor = Cursors.SizeNS;
+        HandleBottomLeft.Cursor = Cursors.SizeNESW;
+        HandleLeft.Cursor = Cursors.SizeWE;
 
         // Snap guides
         if (_snapCenterY)

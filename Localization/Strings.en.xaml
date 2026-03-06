@@ -21,6 +21,17 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonVisualizerSettings">Visualizer settings...</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonGenerate">Generate</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="CheckPlayAfterGenerate">Play after export</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelVisualizerRotation">Visualizer rotation:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonRotateLeft90">Rotate 90° left</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonRotateRight90">Rotate 90° right</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonFineRotationMinus">Fine rotation -</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonFineRotationPlus">Fine rotation +</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="ButtonRotationReset">Reset</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipLeft90">Rotate 90° left</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipRight90">Rotate 90° right</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipFineMinus">Fine rotation -1°</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipFinePlus">Fine rotation +1°</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="RotationTooltipReset">Reset rotation</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="LabelCommandPreview">FFmpeg CLI command</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="PlaceholderCommandPreview">FFmpeg command preview appears here after selecting a background image.</sys:String>
 

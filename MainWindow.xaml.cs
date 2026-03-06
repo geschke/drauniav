@@ -718,6 +718,7 @@ public partial class MainWindow : Window
         int waveH = Math.Clamp((int)Math.Round(renderH), 1, 16384);
 
         string filterType = settings.FilterType == "showwaves" ? "showwaves" : "showfreqs";
+        string channelMode = GetSafeChoice(settings.ChannelMode, "mono", "mono", "stereo_split", "stereo_mirror");
         string mode = GetSafeMode(filterType, settings.Mode);
         string ascale = GetSafeChoice(settings.AScale, "sqrt", "lin", "sqrt", "cbrt", "log");
         string fscale = GetSafeChoice(settings.FScale, "log", "lin", "log");
@@ -739,36 +740,91 @@ public partial class MainWindow : Window
         filterParts.Add($"[0:v]scale={imgWidth}:{imgHeight}:flags=lanczos,format=rgba[bg]");
 
         string currentLabel = "viz0";
-        if (filterType == "showwaves")
+        if (channelMode == "mono")
         {
-            filterParts.Add(
-                $"[1:a]volume={volumeText}dB,showwaves=s={waveW}x{waveH}:mode={mode}:rate={rate}:colors={color},format=rgba[{currentLabel}]");
+            if (filterType == "showwaves")
+            {
+                filterParts.Add(
+                    $"[1:a]volume={volumeText}dB,showwaves=s={waveW}x{waveH}:mode={mode}:rate={rate}:colors={color},format=rgba[{currentLabel}]");
+            }
+            else
+            {
+                double showfreqVolumeDb = volumeDb;
+                if (settings.AutoHeadroom && settings.SmoothSpectrum)
+                    showfreqVolumeDb += MapSmoothnessToHeadroomDb(settings.Smoothness);
+                showfreqVolumeDb = Math.Clamp(showfreqVolumeDb, -96.0, 40.0);
+                string showfreqVolumeText = showfreqVolumeDb.ToString("0.###", CultureInfo.InvariantCulture);
+
+                string averagingPart = string.Empty;
+                if (settings.SmoothSpectrum)
+                {
+                    int averaging = MapSmoothnessToAveraging(settings.Smoothness);
+                    averagingPart = $":averaging={averaging}";
+                }
+
+                string minAmpPart = string.Empty;
+                if (settings.UseMinAmplitude)
+                {
+                    double minAmp = MapMinAmplitude(settings.MinAmplitude);
+                    string minAmpText = minAmp.ToString("G17", CultureInfo.InvariantCulture);
+                    minAmpPart = $":minamp={minAmpText}";
+                }
+
+                filterParts.Add(
+                    $"[1:a]volume={showfreqVolumeText}dB,showfreqs=s={waveW}x{waveH}:mode={mode}:ascale={ascale}:win_size={winSize}:rate={rate}:fscale={fscale}{averagingPart}{minAmpPart}:colors={color},format=rgba[{currentLabel}]");
+            }
         }
         else
         {
-            double showfreqVolumeDb = volumeDb;
-            if (settings.AutoHeadroom && settings.SmoothSpectrum)
-                showfreqVolumeDb += MapSmoothnessToHeadroomDb(settings.Smoothness);
-            showfreqVolumeDb = Math.Clamp(showfreqVolumeDb, -96.0, 40.0);
-            string showfreqVolumeText = showfreqVolumeDb.ToString("0.###", CultureInfo.InvariantCulture);
+            int halfWidth = Math.Max(1, waveW / 2);
+            int remainderWidth = Math.Max(1, waveW - halfWidth);
+            string leftLabel = "vizChLeft";
+            string rightLabel = "vizChRight";
+            string mergedLabel = "vizStereo";
 
-            string averagingPart = string.Empty;
-            if (settings.SmoothSpectrum)
+            if (filterType == "showwaves")
             {
-                int averaging = MapSmoothnessToAveraging(settings.Smoothness);
-                averagingPart = $":averaging={averaging}";
+                filterParts.Add($"[1:a]aformat=channel_layouts=stereo,channelsplit=channel_layout=stereo[left][right]");
+                filterParts.Add($"[left]volume={volumeText}dB,showwaves=s={halfWidth}x{waveH}:mode={mode}:rate={rate}:colors={color},format=rgba[{leftLabel}]");
+                filterParts.Add($"[right]volume={volumeText}dB,showwaves=s={remainderWidth}x{waveH}:mode={mode}:rate={rate}:colors={color},format=rgba[{rightLabel}]");
+            }
+            else
+            {
+                double showfreqVolumeDb = volumeDb;
+                if (settings.AutoHeadroom && settings.SmoothSpectrum)
+                    showfreqVolumeDb += MapSmoothnessToHeadroomDb(settings.Smoothness);
+                showfreqVolumeDb = Math.Clamp(showfreqVolumeDb, -96.0, 40.0);
+                string showfreqVolumeText = showfreqVolumeDb.ToString("0.###", CultureInfo.InvariantCulture);
+
+                string averagingPart = string.Empty;
+                if (settings.SmoothSpectrum)
+                {
+                    int averaging = MapSmoothnessToAveraging(settings.Smoothness);
+                    averagingPart = $":averaging={averaging}";
+                }
+
+                string minAmpPart = string.Empty;
+                if (settings.UseMinAmplitude)
+                {
+                    double minAmp = MapMinAmplitude(settings.MinAmplitude);
+                    string minAmpText = minAmp.ToString("G17", CultureInfo.InvariantCulture);
+                    minAmpPart = $":minamp={minAmpText}";
+                }
+
+                filterParts.Add($"[1:a]aformat=channel_layouts=stereo,channelsplit=channel_layout=stereo[left][right]");
+                filterParts.Add($"[left]volume={showfreqVolumeText}dB,showfreqs=s={halfWidth}x{waveH}:mode={mode}:ascale={ascale}:win_size={winSize}:rate={rate}:fscale={fscale}{averagingPart}{minAmpPart}:colors={color},format=rgba[{leftLabel}]");
+                filterParts.Add($"[right]volume={showfreqVolumeText}dB,showfreqs=s={remainderWidth}x{waveH}:mode={mode}:ascale={ascale}:win_size={winSize}:rate={rate}:fscale={fscale}{averagingPart}{minAmpPart}:colors={color},format=rgba[{rightLabel}]");
             }
 
-            string minAmpPart = string.Empty;
-            if (settings.UseMinAmplitude)
+            if (channelMode == "stereo_mirror")
             {
-                double minAmp = MapMinAmplitude(settings.MinAmplitude);
-                string minAmpText = minAmp.ToString("G17", CultureInfo.InvariantCulture);
-                minAmpPart = $":minamp={minAmpText}";
+                string mirroredLeftLabel = "vizChLeftMirror";
+                filterParts.Add($"[{leftLabel}]hflip[{mirroredLeftLabel}]");
+                leftLabel = mirroredLeftLabel;
             }
 
-            filterParts.Add(
-                $"[1:a]volume={showfreqVolumeText}dB,showfreqs=s={waveW}x{waveH}:mode={mode}:ascale={ascale}:win_size={winSize}:rate={rate}:fscale={fscale}{averagingPart}{minAmpPart}:colors={color},format=rgba[{currentLabel}]");
+            filterParts.Add($"[{leftLabel}][{rightLabel}]hstack=inputs=2[{mergedLabel}]");
+            currentLabel = mergedLabel;
         }
 
         if (settings.UseColorKey)

@@ -76,6 +76,7 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelPreset">Preset:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelType">Type:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelMode">Mode:</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelChannelMode">Channel mode:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelLineThickness">Line thickness:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelAlpha">Transparency (0..1):</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelRate">Rate (fps):</sys:String>

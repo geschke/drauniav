@@ -94,6 +94,7 @@ public partial class VisualizerSettingsDialog : Window
             CboPreset.SelectedItem = "Custom";
 
         SetComboValue(CboType, settings.FilterType);
+        SetComboValue(CboChannelMode, settings.ChannelMode);
         PopulateModeItems(settings.FilterType, settings.Mode);
         SetComboValue(CboMode, settings.Mode);
         SetComboValue(CboAScale, settings.AScale);
@@ -128,6 +129,7 @@ public partial class VisualizerSettingsDialog : Window
         {
             PresetName = GetComboValue(CboPreset, "Custom"),
             FilterType = type,
+            ChannelMode = GetComboValue(CboChannelMode, "mono"),
             Mode = GetComboValue(CboMode, modeFallback),
             LineThickness = ParseInt(TxtLineThickness.Text, 2, 1, 8),
             Alpha = ParseDouble(TxtAlpha.Text, 0.95, 0.05, 1.0),
@@ -152,8 +154,14 @@ public partial class VisualizerSettingsDialog : Window
         if (combo.SelectedItem is string s)
             return s;
 
-        if (combo.SelectedItem is ComboBoxItem item && item.Content is string content)
-            return content;
+        if (combo.SelectedItem is ComboBoxItem item)
+        {
+            if (item.Tag is string tag)
+                return tag;
+
+            if (item.Content is string content)
+                return content;
+        }
 
         return fallback;
     }
@@ -165,6 +173,7 @@ public partial class VisualizerSettingsDialog : Window
             string compare = item switch
             {
                 string s => s,
+                ComboBoxItem cbi when cbi.Tag is string tag => tag,
                 ComboBoxItem cbi when cbi.Content is string content => content,
                 _ => string.Empty
             };

@@ -149,6 +149,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Label Grid.Row="0" Grid.Column="0" Content="{DynamicResource VzLabelPreset}" Margin="0,0,8,6"/>
@@ -165,36 +166,43 @@
                     <Label Grid.Row="2" Grid.Column="0" Content="{DynamicResource VzLabelMode}" Margin="0,0,8,6"/>
                     <ComboBox Grid.Row="2" Grid.Column="1" x:Name="CboMode" Margin="0,0,0,6"/>
 
-                    <Label Grid.Row="3" Grid.Column="0" Content="{DynamicResource VzLabelLineThickness}" Margin="0,0,8,6"/>
-                    <TextBox Grid.Row="3" Grid.Column="1" x:Name="TxtLineThickness" Margin="0,0,0,6"/>
+                    <Label Grid.Row="3" Grid.Column="0" Content="{DynamicResource VzLabelChannelMode}" Margin="0,0,8,6"/>
+                    <ComboBox Grid.Row="3" Grid.Column="1" x:Name="CboChannelMode" Margin="0,0,0,6">
+                        <ComboBoxItem Tag="mono" Content="Mono"/>
+                        <ComboBoxItem Tag="stereo_split" Content="Stereo left/right"/>
+                        <ComboBoxItem Tag="stereo_mirror" Content="Stereo mirror left/right"/>
+                    </ComboBox>
 
-                    <Label Grid.Row="4" Grid.Column="0" Content="{DynamicResource VzLabelAlpha}" Margin="0,0,8,6"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtAlpha" Margin="0,0,0,6"/>
+                    <Label Grid.Row="4" Grid.Column="0" Content="{DynamicResource VzLabelLineThickness}" Margin="0,0,8,6"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="TxtLineThickness" Margin="0,0,0,6"/>
 
-                    <Label Grid.Row="5" Grid.Column="0" Content="{DynamicResource VzLabelRate}" Margin="0,0,8,6"/>
-                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="TxtRate" Margin="0,0,0,6"/>
+                    <Label Grid.Row="5" Grid.Column="0" Content="{DynamicResource VzLabelAlpha}" Margin="0,0,8,6"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" x:Name="TxtAlpha" Margin="0,0,0,6"/>
 
-                    <Label Grid.Row="6" Grid.Column="0" Content="{DynamicResource VzLabelVolume}" Margin="0,0,8,6"/>
-                    <TextBox Grid.Row="6" Grid.Column="1" x:Name="TxtVolumeDb" Margin="0,0,0,6"/>
+                    <Label Grid.Row="6" Grid.Column="0" Content="{DynamicResource VzLabelRate}" Margin="0,0,8,6"/>
+                    <TextBox Grid.Row="6" Grid.Column="1" x:Name="TxtRate" Margin="0,0,0,6"/>
 
-                    <Label Grid.Row="7" Grid.Column="0" Content="{DynamicResource VzLabelAScale}" Margin="0,0,8,6"/>
-                    <ComboBox Grid.Row="7" Grid.Column="1" x:Name="CboAScale" Margin="0,0,0,6">
+                    <Label Grid.Row="7" Grid.Column="0" Content="{DynamicResource VzLabelVolume}" Margin="0,0,8,6"/>
+                    <TextBox Grid.Row="7" Grid.Column="1" x:Name="TxtVolumeDb" Margin="0,0,0,6"/>
+
+                    <Label Grid.Row="8" Grid.Column="0" Content="{DynamicResource VzLabelAScale}" Margin="0,0,8,6"/>
+                    <ComboBox Grid.Row="8" Grid.Column="1" x:Name="CboAScale" Margin="0,0,0,6">
                         <ComboBoxItem Content="lin"/>
                         <ComboBoxItem Content="sqrt"/>
                         <ComboBoxItem Content="cbrt"/>
                         <ComboBoxItem Content="log"/>
                     </ComboBox>
 
-                    <Label Grid.Row="8" Grid.Column="0" Content="{DynamicResource VzLabelWinSize}" Margin="0,0,8,6"/>
-                    <TextBox Grid.Row="8" Grid.Column="1" x:Name="TxtWinSize" Margin="0,0,0,6"/>
+                    <Label Grid.Row="9" Grid.Column="0" Content="{DynamicResource VzLabelWinSize}" Margin="0,0,8,6"/>
+                    <TextBox Grid.Row="9" Grid.Column="1" x:Name="TxtWinSize" Margin="0,0,0,6"/>
 
-                    <Label Grid.Row="9" Grid.Column="0" Content="{DynamicResource VzLabelFScale}" Margin="0,0,8,0"/>
-                    <ComboBox Grid.Row="9" Grid.Column="1" x:Name="CboFScale">
+                    <Label Grid.Row="10" Grid.Column="0" Content="{DynamicResource VzLabelFScale}" Margin="0,0,8,0"/>
+                    <ComboBox Grid.Row="10" Grid.Column="1" x:Name="CboFScale">
                         <ComboBoxItem Content="lin"/>
                         <ComboBoxItem Content="log"/>
                     </ComboBox>
 
-                    <Expander Grid.Row="10" Grid.ColumnSpan="2" x:Name="AdvancedOptionsPanel"
+                    <Expander Grid.Row="11" Grid.ColumnSpan="2" x:Name="AdvancedOptionsPanel"
                               Header="{DynamicResource VzLabelAdvancedOptions}"
                               IsExpanded="False"
                               Margin="0,8,0,0">

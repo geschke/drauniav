@@ -6,6 +6,7 @@ public sealed class VisualizerSettings
 {
     public string PresetName { get; set; } = "Soft Line";
     public string FilterType { get; set; } = "showfreqs"; // showwaves | showfreqs
+    public string ChannelMode { get; set; } = "mono"; // mono | stereo_split | stereo_mirror
     public string Mode { get; set; } = "line";
     public int Rate { get; set; } = 24;
     public double VolumeDb { get; set; } = 18.0;
@@ -28,6 +29,7 @@ public sealed class VisualizerSettings
         {
             PresetName = PresetName,
             FilterType = FilterType,
+            ChannelMode = ChannelMode,
             Mode = Mode,
             Rate = Rate,
             VolumeDb = VolumeDb,
@@ -64,6 +66,7 @@ public sealed class VisualizerSettings
             {
                 PresetName = "Classic Bars",
                 FilterType = "showfreqs",
+                ChannelMode = "mono",
                 Mode = "bar",
                 Rate = 24,
                 VolumeDb = 16.0,
@@ -85,6 +88,7 @@ public sealed class VisualizerSettings
             {
                 PresetName = "Wide Wave",
                 FilterType = "showwaves",
+                ChannelMode = "mono",
                 Mode = "p2p",
                 Rate = 30,
                 VolumeDb = 10.0,
@@ -106,6 +110,7 @@ public sealed class VisualizerSettings
             {
                 PresetName = "Crisp Spectrum",
                 FilterType = "showfreqs",
+                ChannelMode = "mono",
                 Mode = "line",
                 Rate = 30,
                 VolumeDb = 18.0,
@@ -127,6 +132,7 @@ public sealed class VisualizerSettings
             {
                 PresetName = "Soft Line",
                 FilterType = "showfreqs",
+                ChannelMode = "mono",
                 Mode = "line",
                 Rate = 24,
                 VolumeDb = 18.0,
@@ -160,6 +166,7 @@ public sealed class VisualizerSettings
     private static bool IsEquivalent(VisualizerSettings a, VisualizerSettings b)
     {
         return a.FilterType == b.FilterType
+            && a.ChannelMode == b.ChannelMode
             && a.Mode == b.Mode
             && a.Rate == b.Rate
             && Math.Abs(a.VolumeDb - b.VolumeDb) < 0.001

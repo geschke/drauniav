@@ -263,7 +263,24 @@ if ($CreateDraftRelease) {
             throw "Release $tag already exists on $Repository. Use -ReplaceExistingRelease to recreate it."
         }
 
-        Invoke-CheckedCommand -FilePath $ghExe -Arguments @('release', 'delete', $tag, '--repo', $Repository, '--yes', '--cleanup-tag')
+        try {
+            Invoke-CheckedCommand -FilePath $ghExe -Arguments @('release', 'delete', $tag, '--repo', $Repository, '--yes', '--cleanup-tag')
+        }
+        catch {
+            $previousErrorActionPreference = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            try {
+                & $ghExe release view $tag --repo $Repository *> $null
+                $releaseStillExists = ($LASTEXITCODE -eq 0)
+            }
+            finally {
+                $ErrorActionPreference = $previousErrorActionPreference
+            }
+
+            if ($releaseStillExists) {
+                Invoke-CheckedCommand -FilePath $ghExe -Arguments @('release', 'delete', $tag, '--repo', $Repository, '--yes')
+            }
+        }
     }
 
     Invoke-CheckedCommand -FilePath $ghExe -Arguments @(

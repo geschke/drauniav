@@ -115,6 +115,7 @@ public partial class VisualizerSettingsDialog : Window
         ChkUseMinAmplitude.IsChecked = settings.UseMinAmplitude;
         SldMinAmplitude.Value = Math.Clamp(settings.MinAmplitude, 0, 100);
         TxtMinAmplitudeValue.Text = $"{(int)Math.Round(SldMinAmplitude.Value)}";
+        ChkMirrorHorizontally.IsChecked = settings.MirrorHorizontally;
 
         UpdateShowfreqFieldsEnabled(settings.FilterType == "showfreqs");
         _suppressEvents = false;
@@ -145,7 +146,8 @@ public partial class VisualizerSettingsDialog : Window
             Smoothness = type == "showfreqs" ? (int)Math.Round(SldSmoothness.Value) : 0,
             AutoHeadroom = type == "showfreqs" && ChkAutoHeadroom.IsChecked == true,
             UseMinAmplitude = type == "showfreqs" && ChkUseMinAmplitude.IsChecked == true,
-            MinAmplitude = type == "showfreqs" ? (int)Math.Round(SldMinAmplitude.Value) : 0
+            MinAmplitude = type == "showfreqs" ? (int)Math.Round(SldMinAmplitude.Value) : 0,
+            MirrorHorizontally = ChkMirrorHorizontally.IsChecked == true
         };
     }
 

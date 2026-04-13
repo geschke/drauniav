@@ -23,6 +23,7 @@ public sealed class VisualizerSettings
     public bool AutoHeadroom { get; set; } = false;
     public bool UseMinAmplitude { get; set; } = false;
     public int MinAmplitude { get; set; } = 20;
+    public bool MirrorHorizontally { get; set; } = false;
 
     public VisualizerSettings Clone() =>
         new()
@@ -45,7 +46,8 @@ public sealed class VisualizerSettings
             Smoothness = Smoothness,
             AutoHeadroom = AutoHeadroom,
             UseMinAmplitude = UseMinAmplitude,
-            MinAmplitude = MinAmplitude
+            MinAmplitude = MinAmplitude,
+            MirrorHorizontally = MirrorHorizontally
         };
 
     public string ToSummaryText()
@@ -182,7 +184,8 @@ public sealed class VisualizerSettings
             && a.Smoothness == b.Smoothness
             && a.AutoHeadroom == b.AutoHeadroom
             && a.UseMinAmplitude == b.UseMinAmplitude
-            && a.MinAmplitude == b.MinAmplitude;
+            && a.MinAmplitude == b.MinAmplitude
+            && a.MirrorHorizontally == b.MirrorHorizontally;
     }
 
     public static string FormatDouble(double value) =>

@@ -150,6 +150,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Label Grid.Row="0" Grid.Column="0" Content="{DynamicResource VzLabelPreset}" Margin="0,0,8,6"/>
@@ -202,7 +203,11 @@
                         <ComboBoxItem Content="log"/>
                     </ComboBox>
 
-                    <Expander Grid.Row="11" Grid.ColumnSpan="2" x:Name="AdvancedOptionsPanel"
+                    <CheckBox Grid.Row="11" Grid.ColumnSpan="2" x:Name="ChkMirrorHorizontally"
+                              Content="{DynamicResource VzLabelMirrorHorizontally}"
+                              Margin="0,8,0,0"/>
+
+                    <Expander Grid.Row="12" Grid.ColumnSpan="2" x:Name="AdvancedOptionsPanel"
                               Header="{DynamicResource VzLabelAdvancedOptions}"
                               IsExpanded="False"
                               Margin="0,8,0,0">

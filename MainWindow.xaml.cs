@@ -153,8 +153,10 @@ public partial class MainWindow : Window
             Title = Loc.Get("DialogSelectBackgroundTitle"),
             Filter = Loc.Get("DialogFilterImage")
         };
+        ApplyInitialDirectory(dlg, FileDialogDirectoryHistory.LoadImageDirectory());
         if (dlg.ShowDialog() == true)
         {
+            FileDialogDirectoryHistory.SaveImagePath(dlg.FileName);
             TxtImage.Text = dlg.FileName;
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
@@ -186,8 +188,10 @@ public partial class MainWindow : Window
             Title = Loc.Get("DialogSelectAudioTitle"),
             Filter = Loc.Get("DialogFilterAudio")
         };
+        ApplyInitialDirectory(dlg, FileDialogDirectoryHistory.LoadAudioDirectory());
         if (dlg.ShowDialog() == true)
         {
+            FileDialogDirectoryHistory.SaveAudioPath(dlg.FileName);
             TxtAudio.Text = dlg.FileName;
             UpdateCommandPreview();
         }
@@ -201,11 +205,19 @@ public partial class MainWindow : Window
             Filter = Loc.Get("DialogFilterOutput"),
             DefaultExt = ".mp4"
         };
+        ApplyInitialDirectory(dlg, FileDialogDirectoryHistory.LoadOutputDirectory());
         if (dlg.ShowDialog() == true)
         {
+            FileDialogDirectoryHistory.SaveOutputPath(dlg.FileName);
             TxtOutput.Text = dlg.FileName;
             UpdateCommandPreview();
         }
+    }
+
+    private static void ApplyInitialDirectory(FileDialog dlg, string? directory)
+    {
+        if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
+            dlg.InitialDirectory = directory;
     }
 
     private void UpdateImageInfo(string imagePath, BitmapSource bitmap)
@@ -881,6 +893,13 @@ public partial class MainWindow : Window
             string radiansText = radians.ToString("0.###########", CultureInfo.InvariantCulture);
             string nextLabel = "vizRotateFine";
             filterParts.Add($"[{currentLabel}]rotate={radiansText}:ow=rotw(iw):oh=roth(ih):c=none[{nextLabel}]");
+            currentLabel = nextLabel;
+        }
+
+        if (settings.MirrorHorizontally)
+        {
+            string nextLabel = "vizMirrorHorizontal";
+            filterParts.Add($"[{currentLabel}]hflip[{nextLabel}]");
             currentLabel = nextLabel;
         }
 

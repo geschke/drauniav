@@ -84,6 +84,7 @@
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelAScale">AScale (showfreqs):</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelWinSize">Win Size (showfreqs):</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelFScale">FScale (showfreqs):</sys:String>
+    <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelMirrorHorizontally">Mirror frequency axis</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelColorKey">Remove black background using colorkey</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelKeySimilarity">Key Similarity:</sys:String>
     <sys:String xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="VzLabelKeyBlend">Key Blend:</sys:String>

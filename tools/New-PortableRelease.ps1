@@ -248,8 +248,15 @@ if ($CreateDraftRelease) {
 
     Invoke-CheckedCommand -FilePath $ghExe -Arguments @('auth', 'status')
 
-    & $ghExe release view $tag --repo $Repository *> $null
-    $releaseExists = ($LASTEXITCODE -eq 0)
+    $previousErrorActionPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $ghExe release view $tag --repo $Repository *> $null
+        $releaseExists = ($LASTEXITCODE -eq 0)
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
 
     if ($releaseExists) {
         if (-not $ReplaceExistingRelease) {

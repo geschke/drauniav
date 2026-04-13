@@ -6,15 +6,19 @@ All notable changes to Drauniav are documented here.
 
 ### Added
 
+- Added stereo channel modes for the visualizer.
 - Added an optional horizontal visualizer mirror mode for correcting the frequency axis after rotation.
 - Added separate persisted file dialog directories for background images, audio files, and output videos.
+
+### Fixed
+
+- Fixed draft release creation when checking for a release that does not exist yet.
 
 ## 0.4.0 - 2026-03-06
 
 ### Added
 
 - Added visualizer rotation controls.
-- Added stereo channel modes for the visualizer.
 
 ### Changed
 
